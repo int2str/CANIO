@@ -185,6 +185,11 @@ void CANbus::onRxComplete(uint8_t mob, const CANmsg& msg) {
   event::Loop::postPending(event::Event(EVENT_CAN_RX, mob));
   resetMOb();
   setRxEnabled();
+  // @@@ TODO: Technically, RX shouldn't be enabled until the
+  // incoming package is handled, especially if the event loop
+  // delay is larger.
+  // This could also mean the cache_ is not needed at all if
+  // we enable RX in getMessage() instead.
 }
 
 }  // namespace device
