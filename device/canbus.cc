@@ -31,14 +31,7 @@ ISR(CAN_INT_vect) {
 
   else if (CANSTMOB & (1 << RXOK)) {
     CANSTMOB = 0;
-
-    canio::device::CANmsg msg;
-    msg.length = (CANCDMOB & 0xF);
-    for (uint8_t i = 0; i != msg.length; ++i) {
-      msg.data[i] = CANMSG;
-    }
-
-    canio::device::CANbus::get().onRxComplete(CANPAGE >> 4, msg);
+    canio::device::CANbus::get().onRxComplete(CANPAGE >> 4);
   }
 
   // @@@ TODO: Handle errors
@@ -174,22 +167,21 @@ void CANbus::registerReceiver(uint8_t mob, uint16_t id) {
 }
 
 CANmsg CANbus::getMessage(uint8_t mob) {
-  if (mob < 1 || mob > 5) return CANmsg{0, 0};
-  return cache_[mob - 1];
+  selectPage(mob);
+  canio::device::CANmsg msg;
+  msg.length = (CANCDMOB & 0xF);
+  for (uint8_t i = 0; i != msg.length; ++i) {
+    msg.data[i] = CANMSG;
+  }
+  resetMOb();
+  setRxEnabled();
+  return msg;
 }
 
 void CANbus::onTxComplete(uint8_t, uint8_t) {}
 
-void CANbus::onRxComplete(uint8_t mob, const CANmsg& msg) {
-  cache_[mob - 1] = msg;
+void CANbus::onRxComplete(uint8_t mob) {
   event::Loop::postPending(event::Event(EVENT_CAN_RX, mob));
-  resetMOb();
-  setRxEnabled();
-  // @@@ TODO: Technically, RX shouldn't be enabled until the
-  // incoming package is handled, especially if the event loop
-  // delay is larger.
-  // This could also mean the cache_ is not needed at all if
-  // we enable RX in getMessage() instead.
 }
 
 }  // namespace device

@@ -44,10 +44,8 @@ class CANbus {
  private:
   friend void ::CAN_INT_vect();
 
-  CANmsg cache_[5];  // No cache for MOb[0] (transmit)
-
   void onTxComplete(uint8_t mob, uint8_t status);
-  void onRxComplete(uint8_t mob, const CANmsg& msg);
+  void onRxComplete(uint8_t mob);
 };
 
 }  // namespace device
