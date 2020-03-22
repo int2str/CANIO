@@ -22,17 +22,17 @@
 namespace canio {
 namespace device {
 
-constexpr uint8_t SCK_A = (1 << PD4);
+constexpr uint8_t HEARTBEAT_PIN = (1 << PB6);
 
 Heartbeat& Heartbeat::init() {
   static Heartbeat heartbeat;
   return heartbeat;
 }
 
-Heartbeat::Heartbeat() { DDRD |= SCK_A; }
+Heartbeat::Heartbeat() { DDRB |= HEARTBEAT_PIN; }
 
 void Heartbeat::onEvent(const event::Event& event) {
-  if (event.id == EVENT_UPDATE) PIND = SCK_A;
+  if (event.id == EVENT_UPDATE) PINB = HEARTBEAT_PIN;
 }
 
 }  // namespace device
