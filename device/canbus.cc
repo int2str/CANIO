@@ -182,7 +182,7 @@ void CANbus::onTxComplete(uint8_t, uint8_t) {}
 
 void CANbus::onRxComplete(uint8_t mob, const CANmsg& msg) {
   cache_[mob - 1] = msg;
-  event::Loop::post(event::Event(EVENT_CAN_RX, mob));
+  event::Loop::postPending(event::Event(EVENT_CAN_RX, mob));
   resetMOb();
   setRxEnabled();
 }
