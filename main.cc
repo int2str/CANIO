@@ -23,7 +23,23 @@
 
 namespace canio {
 
+void powerSave() {
+  // Un-float pins; enable pull-ups where possible
+  DDRB = 0x9F;  // Exceptions for IO_3 and IO_4
+  PORTB = 0x9F;
+  DDRC = 0xF3;  // Exceptions for RXCAN and TXCAN
+  PORTC = 0xF3;
+  DDRD = 0xFF;
+  PORTD = 0xFF;
+
+  // Engage Power Reduction Register flags
+  PRR =
+      (1 << PRPSC) | (1 << PRSPI) | (1 << PRLIN) | (1 << PRADC) | (1 << PRTIM1);
+}
+
 void run() {
+  powerSave();
+
   system::Watchdog::enable();
   device::Heartbeat::init();
 
