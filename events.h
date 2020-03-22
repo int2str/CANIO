@@ -19,8 +19,6 @@
 enum Events : uint8_t {
   EVENT_UPDATE = 1,
 
-  EVENT_CAN_RX = 10,
-
   EVENT_UPDATE_FUEL = 20,
 };
 

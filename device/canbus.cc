@@ -25,18 +25,7 @@
 
 ISR(CAN_INT_vect) {
   CANPAGE = (CANHPMOB & 0xF0);
-
-  if (CANSTMOB & (1 << TXOK)) {
-    CANSTMOB = 0;
-    canio::device::CANbus::get().onTxComplete(CANPAGE >> 4, 0);
-  }
-
-  else if (CANSTMOB & (1 << RXOK)) {
-    CANSTMOB = 0;
-    canio::device::CANbus::get().onRxComplete(CANPAGE >> 4);
-  }
-
-  // @@@ TODO: Handle errors
+  CANSTMOB = 0;
 }
 
 namespace {
@@ -170,20 +159,21 @@ void CANbus::registerReceiver(uint8_t mob, uint16_t id) {
 
 CANmsg CANbus::getMessage(uint8_t mob) {
   selectPage(mob);
+
   canio::device::CANmsg msg;
   msg.length = (CANCDMOB & 0xF);
   for (uint8_t i = 0; i != msg.length; ++i) {
     msg.data[i] = CANMSG;
   }
+
   resetMOb();
   setRxEnabled();
   return msg;
 }
 
-void CANbus::onTxComplete(uint8_t, uint8_t) {}
-
-void CANbus::onRxComplete(uint8_t mob) {
-  event::Loop::postPending(event::Event(EVENT_CAN_RX, mob));
+bool CANbus::hasMessage(uint8_t mob) {
+  selectPage(mob);
+  return (CANCDMOB & 0xF) != 0;
 }
 
 }  // namespace device

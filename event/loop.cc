@@ -30,10 +30,6 @@ void Loop::postDelayed(const Event &event, const uint32_t ms) {
   get().events.push(e);
 }
 
-void Loop::postPending(const Event &event) {
-  get().pending_event_ = event.id | (event.param << 8);
-}
-
 void Loop::remove(const Event &event) {
   auto &events = get().events;
   for (auto it = events.begin(); it != events.end();) {
@@ -63,7 +59,7 @@ Loop &Loop::get() {
   return loop;
 }
 
-Loop::Loop() : pending_event_(0) {}
+Loop::Loop() {}
 
 void Loop::dispatch_impl() {
   for (auto it = events.begin(); it != events.end();) {
@@ -77,11 +73,6 @@ void Loop::dispatch_impl() {
     } else {
       ++it;
     }
-  }
-
-  if (pending_event_ != 0) {
-    events.push(Event(pending_event_ & 0xFF, pending_event_ >> 8));
-    pending_event_ = 0;
   }
 }
 

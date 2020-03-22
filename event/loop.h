@@ -51,8 +51,6 @@ class Loop {
 
   static void removeHandler(Handler *ph);
 
-  static void postPending(const Event &event);
-
  protected:
   friend class Handler;
 
@@ -60,7 +58,6 @@ class Loop {
   static Loop &get();
   void dispatch_impl();
 
-  uint16_t pending_event_;
   utils::Queue<Event> events;
   utils::Queue<Handler *> handlers;
 

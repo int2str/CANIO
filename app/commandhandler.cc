@@ -24,6 +24,7 @@
 
 namespace {
 
+constexpr uint8_t MOB_COMMAND_RX = 1;
 constexpr uint32_t FUEL_UPDATE_DELAY_MS = 1'000;
 
 canio::device::CANmsg makeEvent(uint8_t evt, uint16_t data) {
@@ -77,7 +78,7 @@ CommandHandler::CommandHandler() {
   canbus.send(CAN_ID_COMMANDS_OUT,
               makeEvent(CAN_EVT_BOOT_COMPLETE, CAN_PROTOCOL_VERSION));
 
-  canbus.registerReceiver(1, CAN_ID_COMMANDS_IN);
+  canbus.registerReceiver(MOB_COMMAND_RX, CAN_ID_COMMANDS_IN);
 
   pulses_per_ml_cached_ = getFlowrate();
   fuel_sensor_.enableUpdates();
@@ -151,10 +152,13 @@ void CommandHandler::onUpdateFuel() {
 }
 
 void CommandHandler::onEvent(const event::Event& event) {
-  if (event.id == EVENT_CAN_RX)
-    onCANReceived(event.param);
-  else if (event.id == EVENT_UPDATE_FUEL)
+  if (event.id == EVENT_UPDATE_FUEL)
     onUpdateFuel();
+
+  else if (event.id == EVENT_UPDATE) {
+    if (device::CANbus::get().hasMessage(MOB_COMMAND_RX))
+      onCANReceived(MOB_COMMAND_RX);
+  }
 }
 
 }  // namespace app

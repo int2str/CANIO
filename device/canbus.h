@@ -18,8 +18,6 @@
 
 #include <stdint.h>
 
-extern "C" void CAN_INT_vect() __attribute__((signal));
-
 namespace canio {
 namespace device {
 
@@ -39,13 +37,8 @@ class CANbus {
   void send(uint16_t id, CANmsg message);
   void registerReceiver(uint8_t mob, uint16_t id);
 
+  bool hasMessage(uint8_t mob);
   CANmsg getMessage(uint8_t mob);
-
- private:
-  friend void ::CAN_INT_vect();
-
-  void onTxComplete(uint8_t mob, uint8_t status);
-  void onRxComplete(uint8_t mob);
 };
 
 }  // namespace device
