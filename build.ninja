@@ -47,9 +47,8 @@ build $builddir/handler.o: cxx event/handler.cc
 build $builddir/loop.o: cxx event/loop.cc
 build $builddir/libevent.a: ar $builddir/event.o $builddir/handler.o $builddir/loop.o
 
-build $builddir/timer.o: cxx system/timer.cc
 build $builddir/watchdog.o: cxx system/watchdog.cc
-build $builddir/libsystem.a: ar $builddir/timer.o $builddir/watchdog.o
+build $builddir/libsystem.a: ar $builddir/watchdog.o
 
 build $builddir/cpp.o: cxx utils/cpp.cc
 build $builddir/libutils.a: ar $builddir/cpp.o

@@ -30,8 +30,6 @@ class Event {
 
   const uint8_t id;
   const uint8_t param;
-  uint32_t delay;
-  uint32_t posted;
 };
 
 }  // namespace event

@@ -15,20 +15,10 @@
 
 #include "event/loop.h"
 
-#include "system/timer.h"
-
 namespace canio {
 namespace event {
 
 void Loop::post(const Event &event) { get().events.push(event); }
-
-void Loop::postDelayed(const Event &event, const uint32_t ms) {
-  Event e = event;
-  e.delay = ms;
-  e.posted = system::Timer::millis();
-
-  get().events.push(e);
-}
 
 void Loop::remove(const Event &event) {
   auto &events = get().events;
@@ -63,16 +53,9 @@ Loop::Loop() {}
 
 void Loop::dispatch_impl() {
   for (auto it = events.begin(); it != events.end();) {
-    const Event &event = *it;
-
     // Process and erase events
-    if (event.delay == 0 ||
-        ((system::Timer::millis() - event.posted) >= event.delay)) {
-      for (auto handler : handlers) handler->onEvent(event);
-      events.erase(it++);
-    } else {
-      ++it;
-    }
+    for (auto handler : handlers) handler->onEvent(*it);
+    events.erase(it++);
   }
 }
 

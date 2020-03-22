@@ -82,8 +82,6 @@ CommandHandler::CommandHandler() {
 
   pulses_per_ml_cached_ = getFlowrate();
   fuel_sensor_.enableUpdates();
-  event::Loop::postDelayed(event::Event(EVENT_UPDATE_FUEL),
-                           FUEL_UPDATE_DELAY_MS);
 }
 
 void CommandHandler::onCANReceived(uint8_t mob) {
@@ -139,26 +137,21 @@ void CommandHandler::onCANReceived(uint8_t mob) {
 
 void CommandHandler::onUpdateFuel() {
   uint32_t pulses = fuel_sensor_.get();
+  if (pulses < pulses_per_ml_cached_) return;
 
-  if (pulses > (pulses_per_ml_cached_ * 10)) {
-    fuel_sensor_.reset();
-    uint16_t ml = pulses / pulses_per_ml_cached_;
-    device::CANbus& canbus = device::CANbus::get();
-    canbus.send(CAN_ID_FUEL_FLOW, makeEvent(CAN_EVT_FUEL_UPDATE, ml));
-  }
-
-  event::Loop::postDelayed(event::Event(EVENT_UPDATE_FUEL),
-                           FUEL_UPDATE_DELAY_MS);
+  fuel_sensor_.reset();
+  device::CANbus& canbus = device::CANbus::get();
+  canbus.send(CAN_ID_FUEL_FLOW, makeEvent(CAN_EVT_FUEL_UPDATE, pulses / pulses_per_ml_cached_));
 }
 
 void CommandHandler::onEvent(const event::Event& event) {
-  if (event.id == EVENT_UPDATE_FUEL)
-    onUpdateFuel();
+  if (event.id != EVENT_UPDATE) return;
 
-  else if (event.id == EVENT_UPDATE) {
-    if (device::CANbus::get().hasMessage(MOB_COMMAND_RX))
-      onCANReceived(MOB_COMMAND_RX);
-  }
+  if (device::CANbus::get().hasMessage(MOB_COMMAND_RX))
+    onCANReceived(MOB_COMMAND_RX);
+
+  static uint16_t update_delay = 1;
+  if (update_delay++ == 0) onUpdateFuel();
 }
 
 }  // namespace app

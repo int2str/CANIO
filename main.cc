@@ -33,8 +33,8 @@ void powerSave() {
   PORTD = 0xFF;
 
   // Engage Power Reduction Register flags
-  PRR =
-      (1 << PRPSC) | (1 << PRSPI) | (1 << PRLIN) | (1 << PRADC) | (1 << PRTIM1);
+  PRR = (1 << PRPSC) | (1 << PRSPI) | (1 << PRLIN) | (1 << PRADC) |
+        (1 << PRTIM1) | (1 << PRTIM1);
 }
 
 void run() {
