@@ -16,7 +16,6 @@
 #include <avr/interrupt.h>
 
 #include "app/commandhandler.h"
-#include "device/heartbeat.h"
 #include "event/loop.h"
 #include "events.h"
 #include "system/watchdog.h"
@@ -26,7 +25,7 @@ namespace canio {
 void powerSave() {
   // Un-float pins; enable pull-ups where possible
   DDRB = 0x9F;  // Exceptions for IO_3 and IO_4
-  PORTB = 0x9F;
+  PORTB = 0xFF;
   DDRC = 0xF3;  // Exceptions for RXCAN and TXCAN
   PORTC = 0xF3;
   DDRD = 0xFF;
@@ -41,14 +40,12 @@ void run() {
   powerSave();
 
   system::Watchdog::enable();
-  device::Heartbeat::init();
-
   app::CommandHandler::init();
 
   while (true) {
+    system::Watchdog::reset();
     event::Loop::post(event::Event(EVENT_UPDATE));
     event::Loop::dispatch();
-    system::Watchdog::reset();
   }
 }
 

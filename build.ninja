@@ -38,9 +38,7 @@ build $builddir/libapp.a: ar $builddir/commandhandler.o $builddir/settings.o
 
 build $builddir/canbus.o: cxx device/canbus.cc
 build $builddir/fuelsensor.o: cxx device/fuelsensor.cc
-build $builddir/heartbeat.o: cxx device/heartbeat.cc
-build $builddir/libdevice.a: ar $builddir/canbus.o $builddir/fuelsensor.o $
-    $builddir/heartbeat.o
+build $builddir/libdevice.a: ar $builddir/canbus.o $builddir/fuelsensor.o
 
 build $builddir/event.o: cxx event/event.cc
 build $builddir/handler.o: cxx event/handler.cc
