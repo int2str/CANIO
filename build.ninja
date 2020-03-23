@@ -26,7 +26,7 @@ build upload: upload can_io.hex
 default can_io.hex
 
 build $builddir/can_io.elf: link $builddir/main.o | $
-    $builddir/libapp.a $builddir/libdevice.a $builddir/libevent.a $
+    $builddir/libapp.a $builddir/libdevice.a $
     $builddir/libutils.a $builddir/libsystem.a
     libs = -lapp -ldevice -lutils -lsystem
 
