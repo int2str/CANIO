@@ -17,22 +17,20 @@
 #define COMMANDHANDLER_H
 
 #include "device/fuelsensor.h"
-#include "event/handler.h"
 
 namespace canio {
 namespace app {
 
-class CommandHandler : public event::Handler {
+class CommandHandler {
   CommandHandler();
 
  public:
   static CommandHandler& init();
+  void update();
 
  private:
   void onCANReceived(uint8_t mob);
   void onUpdateFuel();
-
-  void onEvent(const event::Event& event) override;
 
   device::FuelSensor fuel_sensor_;
   uint16_t pulses_per_ml_cached_;

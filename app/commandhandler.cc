@@ -18,8 +18,6 @@
 #include "app/settings.h"
 #include "can.h"
 #include "device/canbus.h"
-#include "event/loop.h"
-#include "events.h"
 #include "system/watchdog.h"
 
 namespace {
@@ -144,9 +142,7 @@ void CommandHandler::onUpdateFuel() {
   canbus.send(CAN_ID_FUEL_FLOW, makeEvent(CAN_EVT_FUEL_UPDATE, pulses / pulses_per_ml_cached_));
 }
 
-void CommandHandler::onEvent(const event::Event& event) {
-  if (event.id != EVENT_UPDATE) return;
-
+void CommandHandler::update() {
   if (device::CANbus::get().hasMessage(MOB_COMMAND_RX))
     onCANReceived(MOB_COMMAND_RX);
 

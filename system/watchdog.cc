@@ -20,7 +20,7 @@
 namespace canio {
 namespace system {
 
-void Watchdog::enable() { wdt_enable(WDTO_8S); }
+void Watchdog::enable() { wdt_enable(WDTO_4S); }
 
 void Watchdog::reset() { wdt_reset(); }
 

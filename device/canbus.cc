@@ -20,9 +20,6 @@
 #include "canbus.h"  // Must be after <avr/interrupt.h>!
 // clang-format on
 
-#include "event/loop.h"
-#include "events.h"
-
 ISR(CAN_INT_vect) {
   CANPAGE = (CANHPMOB & 0xF0);
   CANSTMOB = 0;
