@@ -99,11 +99,6 @@ void setData(uint8_t length, const uint8_t* data) {
   }
 }
 
-template <typename T>
-void setData(const T& n) {
-  setData(sizeof(T), reinterpret_cast<const uint8_t*>(&n));
-}
-
 void setTxEnabled() { CANCDMOB = (CANCDMOB & 0x0F) | (1 << CONMOB0); }
 
 void setRxEnabled() { CANCDMOB = (1 << CONMOB1); }
