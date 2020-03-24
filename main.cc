@@ -22,11 +22,11 @@ namespace canio {
 
 void powerSave() {
   // Un-float pins; enable pull-ups where possible
-  DDRB = 0x9F;  // Exceptions for IO_3 and IO_4
+  DDRB = 0;
   PORTB = 0xFF;
-  DDRC = 0xF3;  // Exceptions for RXCAN and TXCAN
+  DDRC = 0;
   PORTC = 0xF3;
-  DDRD = 0xFF;
+  DDRD = 0;
   PORTD = 0xFF;
 
   // Engage Power Reduction Register flags
