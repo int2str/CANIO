@@ -24,6 +24,9 @@ constexpr uint16_t CAN_ID_COMMANDS_OUT = 0x4AD;
 constexpr uint16_t CAN_ID_FUEL_FLOW = 0x4AE;
 constexpr uint8_t CAN_EVT_FUEL_UPDATE = 0xE2;
 
+constexpr uint16_t CAN_ID_ADC = 0x4AC;
+constexpr uint8_t CAN_EVT_ADC_UPDATE = 0xE3;
+
 constexpr uint8_t CAN_EVT_BOOT_COMPLETE = 0xE1;
 
 constexpr uint8_t CAN_CMD_GET_BAUD = 0x02;

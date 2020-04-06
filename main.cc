@@ -23,14 +23,14 @@ namespace canio {
 void powerSave() {
   // Un-float pins; enable pull-ups where possible
   DDRB = 0;
-  PORTB = 0xFF;
+  PORTB = ~(1 << PB5);
   DDRC = 0;
-  PORTC = 0xF3;
+  PORTC = ~((1 << PC2) | (1 << PC3) | (1 << PC4) | (1 << PC5));
   DDRD = 0;
   PORTD = 0xFF;
 
   // Engage Power Reduction Register flags
-  PRR = (1 << PRPSC) | (1 << PRSPI) | (1 << PRLIN) | (1 << PRADC) |
+  PRR = (1 << PRPSC) | (1 << PRSPI) | (1 << PRLIN) |
         (1 << PRTIM1) | (1 << PRTIM1);
 }
 

@@ -13,33 +13,38 @@
 // See LICENSE for a copy of the GNU General Public License or see
 // it online at <http://www.gnu.org/licenses/>.
 
-#ifndef COMMANDHANDLER_H
-#define COMMANDHANDLER_H
+#pragma once
 
-#include "device/adc.h"
-#include "device/fuelsensor.h"
+#include <stdlib.h>
 
 namespace canio {
-namespace app {
+namespace utils {
 
-class CommandHandler {
-  CommandHandler();
-
+template <class T, size_t WINDOW>
+class MovingAverage {
  public:
-  static CommandHandler& init();
-  void update();
+  MovingAverage() : buffer{0}, index(0), sum(0) {}
+
+  void push(const T value) {
+    sum -= buffer[index];
+    sum += value;
+    buffer[index] = value;
+    if (++index == WINDOW) index = 0;
+  }
+
+  T get() const { return sum / WINDOW; }
+
+  void clear() {
+    sum = 0;
+    index = 0;
+    for (auto &i : buffer) i = 0;
+  }
 
  private:
-  void onCANReceived(uint8_t mob);
-  void onUpdateFuel();
-  void onUpdateAdc();
-
-  device::Adc adc_;
-  device::FuelSensor fuel_sensor_;
-  uint16_t pulses_per_ml_cached_;
+  T buffer[WINDOW];
+  size_t index;
+  T sum;
 };
 
-}  // namespace app
+}  // namespace utils
 }  // namespace canio
-
-#endif  // COMMANDHANDLER_H
