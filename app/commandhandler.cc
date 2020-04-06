@@ -150,14 +150,14 @@ void CommandHandler::onUpdateFuel() {
   if (pulses < pulses_per_ml_cached_) return;
 
   fuel_sensor_.reset();
-  device::CANbus& canbus = device::CANbus::get();
-  canbus.send(CAN_ID_FUEL_FLOW, makeEvent16(CAN_EVT_FUEL_UPDATE, pulses / pulses_per_ml_cached_));
+  device::CANbus::get().send(
+      CAN_ID_FUEL_FLOW,
+      makeEvent16(CAN_EVT_FUEL_UPDATE, pulses / pulses_per_ml_cached_));
 }
 
 void CommandHandler::onUpdateAdc() {
   uint32_t adc = adc_.get();
-  device::CANbus& canbus = device::CANbus::get();
-  canbus.send(CAN_ID_ADC, makeEvent32(CAN_EVT_ADC_UPDATE, adc));
+  device::CANbus::get().send(CAN_ID_ADC, makeEvent32(CAN_EVT_ADC_UPDATE, adc));
 }
 
 void CommandHandler::update() {
