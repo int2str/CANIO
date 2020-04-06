@@ -26,7 +26,7 @@ ISR(PCINT0_vect) {
   uint8_t change = PINB ^ s_last_state;
   s_last_state = PINB;
   // Count on falling edge change
-  if ((change & (1 << PB5)) && (PINB & (1 << PB5)) == 0) ++s_pulses;
+  if ((change & (1 << PB6)) && (PINB & (1 << PB6)) == 0) ++s_pulses;
 }
 
 }  // namespace
@@ -35,12 +35,12 @@ namespace canio {
 namespace device {
 
 FuelSensor::FuelSensor() {
-  PORTB |= (1 << PB5);  // Enable internal pull-up
+  PORTB |= (1 << PB6);  // Enable internal pull-up
   disableUpdates();
 }
 
 void FuelSensor::enableUpdates() {
-  PCMSK0 = (1 << PCINT5);  // PCINT5 = PB5 = IO_3
+  PCMSK0 = (1 << PCINT6);  // PCINT6 = PB6 = IO_4
   PCICR = (1 << PCIE0);
 }
 
