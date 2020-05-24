@@ -21,14 +21,27 @@
 namespace canio {
 namespace app {
 
+const uint8_t IO_COUNT = 4;
+
+enum InputType : uint8_t {
+  UNUSED = 0,
+  ANALOG_IN = 1,
+  FUEL_SENSOR = 2,
+};
+
+const uint16_t FLAG_ENABLE_PULLUP = 0x1000;  // For ADC only
+
 class Settings {
  public:
   uint16_t marker;
   uint8_t revision;
 
-  // Rev 1
+  // Rev 1 2.0
   uint16_t can_baud_rate;
-  uint16_t pulses_per_ml;
+  uint16_t can_base_id;
+
+  uint8_t io_config[IO_COUNT];
+  uint8_t io_params[IO_COUNT];
 
   Settings();
 
@@ -41,7 +54,7 @@ class Settings {
 
 class EepromSettings {
  public:
-  static Settings load();
+  static void load(Settings &settings);
   static void save(Settings &settings);
 };
 

@@ -18,28 +18,30 @@
 
 constexpr uint16_t CAN_PROTOCOL_VERSION = 0x0100;
 
-constexpr uint16_t CAN_ID_COMMANDS_IN = 0x4AF;
-constexpr uint16_t CAN_ID_COMMANDS_OUT = 0x4AD;
+enum CanEvents : uint8_t {
+  CAN_EVT_BOOT_COMPLETE = 0xE1,
+  CAN_EVT_ERROR = 0xEE,
+};
 
-constexpr uint16_t CAN_ID_FUEL_FLOW = 0x4AE;
-constexpr uint8_t CAN_EVT_FUEL_UPDATE = 0xE2;
+enum CanCommands : uint8_t {
+  CAN_CMD_ENABLE_UPDATES = 0x01,
+  CAN_CMD_GET_BAUD = 0x02,
+  CAN_CMD_SET_BAUD = 0x03,
+  CAN_CMD_GET_BASE_ID = 0x04,
+  CAN_CMD_SET_BASE_ID = 0x05,
+  CAN_CMD_GET_IO_CONFIG = 0x06,
+  CAN_CMD_SET_IO_CONFIG = 0x07,
+  CAN_CMD_GET_IO_PARAMS = 0x08,
+  CAN_CMD_SET_IO_PARAMS = 0x09,
+  CAN_CMD_RESET = 0xFE
+};
 
-constexpr uint16_t CAN_ID_ADC = 0x4AC;
-constexpr uint8_t CAN_EVT_ADC_UPDATE = 0xE3;
+enum CanErrors : uint8_t {
+  CAN_ERR_UNKOWN_CMD = 0x01,
+  CAN_ERR_INVALID_PARAMETER = 0x02,
+};
 
-constexpr uint8_t CAN_EVT_BOOT_COMPLETE = 0xE1;
-
-constexpr uint8_t CAN_CMD_GET_BAUD = 0x02;
-constexpr uint8_t CAN_CMD_SET_BAUD = 0x03;
-
-constexpr uint8_t CAN_CMD_GET_FLOWRATE = 0x04;
-constexpr uint8_t CAN_CMD_SET_FLOWRATE = 0x05;
-
-constexpr uint8_t CAN_CMD_RESET = 0xFE;
 constexpr uint16_t CAN_RESET_CONFIRM = 0xDEAD;
 
-constexpr uint8_t CAN_EVT_ERROR = 0xEE;
-constexpr uint8_t CAN_ERR_UNKOWN_CMD = 0x01;
-constexpr uint8_t CAN_ERR_INVALID_PARAMETER = 0x02;
 
 #endif  // CAN_H

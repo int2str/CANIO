@@ -23,9 +23,9 @@ namespace canio {
 void powerSave() {
   // Un-float pins; enable pull-ups where possible
   DDRB = 0;
-  PORTB = ~(1 << PB5);
+  PORTB = 0xFF;
   DDRC = 0;
-  PORTC = ~((1 << PC2) | (1 << PC3) | (1 << PC4) | (1 << PC5));
+  PORTC = ~((1 << PC2) | (1 << PC3));  // Exclude RXCAN and TXCAN
   DDRD = 0;
   PORTD = 0xFF;
 

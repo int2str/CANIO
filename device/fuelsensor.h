@@ -16,9 +16,13 @@
 #ifndef FUELSENSOR_H
 #define FUELSENSOR_H
 
+#include <avr/interrupt.h>
 #include <stdint.h>
 
 #include "utils/cpp.h"
+
+extern "C" void PCINT0_vect() __attribute__((signal));
+extern "C" void PCINT1_vect() __attribute__((signal));
 
 namespace canio {
 namespace device {
@@ -27,11 +31,26 @@ class FuelSensor {
  public:
   FuelSensor();
 
-  void enableUpdates();
-  void disableUpdates();
+  void enable(uint8_t enable_bit_mask, uint8_t* pulses_per_ml);
+  void disable();
+
+  void get(uint8_t* values);
+
+ private:
+  uint8_t enabled_bit_mask_;
+  uint8_t pulses_per_ml_[4];
+  uint16_t pulses_[4];
+
+  uint8_t pcint0_last_state_;
+  uint8_t pcint1_last_state_;
+
+  friend void ::PCINT0_vect();
+  friend void ::PCINT1_vect();
+
+  void updateIrq0();
+  void updateIrq1();
 
   void reset();
-  uint32_t get() const;
 
   DISALLOW_COPY_AND_ASSIGN(FuelSensor);
 };

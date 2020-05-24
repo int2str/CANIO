@@ -18,8 +18,17 @@
 #include <avr/eeprom.h>
 
 #define SETTINGS_OFFSET 0x10
-#define SETTINGS_MARKER 0xAEAE
+#define SETTINGS_MARKER 0xAE10
 #define SETTINGS_REVISION 0x01
+
+namespace {
+
+template<typename T>
+void array_set(T *array, uint8_t length, T value) {
+  for (auto i = 0; i != length; ++i) array[i] = value;
+}
+
+}  // namespace
 
 namespace canio {
 namespace app {
@@ -38,24 +47,32 @@ void Settings::upgrade() {
   // Rev 1
   if (revision < 1) {
     can_baud_rate = 1000;
-    pulses_per_ml = 18;  // 68,000 p/gal = 18 p/ml
+    can_base_id = 0x4AE;
+
+    array_set(io_config, 4, static_cast<uint8_t>(0));
+    array_set(io_params, 4, static_cast<uint8_t>(0));
   }
 
   revision = SETTINGS_REVISION;
 }
 
-Settings EepromSettings::load() {
-  Settings settings;
+void EepromSettings::load(Settings &settings) {
   const void *addr = reinterpret_cast<void *>(SETTINGS_OFFSET);
   eeprom_read_block(&settings, addr, sizeof(Settings));
+  bool needs_saving = false;
 
   if (settings.marker != SETTINGS_MARKER ||
-      settings.revision > SETTINGS_REVISION)
+      settings.revision > SETTINGS_REVISION) {
     settings.defaults();
+    needs_saving = true;
+  }
 
-  if (settings.revision < SETTINGS_REVISION) settings.upgrade();
+  if (settings.revision < SETTINGS_REVISION) {
+    settings.upgrade();
+    needs_saving = true;
+  }
 
-  return settings;
+  if (needs_saving) EepromSettings::save(settings);
 }
 
 void EepromSettings::save(Settings &settings) {

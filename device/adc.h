@@ -1,21 +1,36 @@
 #ifndef ADC_H
 #define ADC_H
 
+#include <avr/interrupt.h>
 #include <stdint.h>
 
-extern "C" void ADC_vect(void) __attribute__((signal));
+#include "utils/movingaverage.h"
+
+extern "C" void ADC_vect() __attribute__((signal));
 
 namespace canio {
 namespace device {
+
+const uint8_t ADC_ROTATION_MAX = 4;
 
 class Adc {
  public:
   Adc();
 
   void disable();
-  void enable();
+  void enable(uint8_t enable_bit_mask);
 
-  uint32_t get();
+  void get(uint8_t* values);
+
+ private:
+  uint8_t enabled_bit_mask_;
+  uint8_t current_idx_;
+  canio::utils::MovingAverage<uint16_t, 20> average_[ADC_ROTATION_MAX];
+
+  void startNextAdcConversion();
+
+  void irq();
+  friend void ::ADC_vect();
 };
 
 }  // namespace device

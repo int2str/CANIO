@@ -4,22 +4,19 @@
 
 #include "utils/movingaverage.h"
 
-namespace {
-
-const uint8_t ADC_ROTATION_MAX = 3;
-const uint8_t ADC_ROTATION[ADC_ROTATION_MAX] = {0x08, 0x09, 0x06};
-
-uint8_t adc_current = 0;
-
-canio::utils::MovingAverage<uint16_t, 20> adc_avg[ADC_ROTATION_MAX];
+static canio::device::Adc* adc_ = nullptr;
 
 ISR(ADC_vect) {
-  adc_avg[adc_current++].push(ADCH);
+  if (adc_) adc_->irq();
+}
 
-  if (adc_current == ADC_ROTATION_MAX) adc_current = 0;
+namespace {
 
-  ADMUX = (1 << REFS0) | (1 << ADLAR) | ADC_ROTATION[adc_current];
-  ADCSRA |= (1 << ADSC);
+void disablePullUps(uint8_t enable_bit_mask) {
+  if (enable_bit_mask & 0x01) PORTC &= ~(1 << PC4);
+  if (enable_bit_mask & 0x02) PORTC &= ~(1 << PC5);
+  if (enable_bit_mask & 0x04) PORTB &= ~(1 << PB5);
+  if (enable_bit_mask & 0x08) PORTB &= ~(1 << PB6);
 }
 
 }  // namespace
@@ -27,38 +24,66 @@ ISR(ADC_vect) {
 namespace canio {
 namespace device {
 
+const uint8_t ADC_ROTATION[ADC_ROTATION_MAX] = {0x08, 0x09, 0x06, 0x07};
+
 Adc::Adc() {
   // Disabled by default
   disable();
 }
 
-void Adc::enable() {
+void Adc::enable(uint8_t enable_bit_mask) {
+  if (enable_bit_mask == 0) return;
+  enabled_bit_mask_ = enable_bit_mask;
+
+  // Generally, seems a good idea to disable internal pull-ups,
+  // as they effectively become voltage dividers. But of course,
+  // it can also save a resistor and work well in some cases.
+  // So maybe make this configurable at some point?
+  disablePullUps(enable_bit_mask);
+
+  adc_ = this;
+
   // Enable ADC interrupt; slowest clock reference (1/128)
   ADCSRA = (1 << ADEN) | (1 << ADIF) | (1 << ADIE) | (1 << ADPS2) |
            (1 << ADPS1) | (1 << ADPS0);
 
-  for (auto& avg : adc_avg) avg.clear();
+  for (auto& avg : average_) avg.clear();
 
   // Select first ADC
-  adc_current = 0;
-  ADMUX = (1 << REFS0) | (1 << ADLAR) | ADC_ROTATION[adc_current];
-
-  // Start first conversion; ISR will re-start conversion
-  ADCSRA |= (1 << ADSC);
+  current_idx_ = -1;
+  startNextAdcConversion();
 }
 
 void Adc::disable() {
+  adc_ = nullptr;
+  enabled_bit_mask_ = 0;
   ADCSRA = (1 << ADIF);
-  for (auto& avg : adc_avg) avg.clear();
+  for (auto& avg : average_) avg.clear();
 }
 
-uint32_t Adc::get() {
-  uint32_t ret = 0;
-  for (const auto& avg : adc_avg) {
-    ret <<= 8;
-    ret |= (avg.get() & 0xFF);
+void Adc::get(uint8_t* values) {
+  for (uint8_t i = 0; i != 4; ++i) {
+    if ((enabled_bit_mask_ & (1 << i)) == 0) continue;
+    values[i] = average_[i].get() & 0xFF;
   }
-  return ret;
+}
+
+void Adc::irq() {
+  average_[current_idx_].push(ADCH);
+  startNextAdcConversion();
+}
+
+void Adc::startNextAdcConversion() {
+  if (enabled_bit_mask_ == 0)
+    return;  // Prevent endless looping of no ADC is enabled
+
+  do {
+    ++current_idx_;
+    if (current_idx_ == ADC_ROTATION_MAX) current_idx_ = 0;
+  } while ((enabled_bit_mask_ & (1 << current_idx_)) == 0);
+
+  ADMUX = (1 << REFS0) | (1 << ADLAR) | ADC_ROTATION[current_idx_];
+  ADCSRA |= (1 << ADSC);
 }
 
 }  // namespace device
