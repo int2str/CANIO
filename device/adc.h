@@ -25,7 +25,7 @@ class Adc {
  private:
   uint8_t enabled_bit_mask_;
   uint8_t current_idx_;
-  canio::utils::MovingAverage<uint32_t, 10> average_[ADC_ROTATION_MAX];
+  canio::utils::MovingAverage<uint32_t, 20> average_[ADC_ROTATION_MAX];
 
   void startNextAdcConversion();
 
