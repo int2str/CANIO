@@ -20,16 +20,16 @@ class Adc {
   void disable();
   void enable(uint8_t enable_bit_mask);
 
-  void get(uint8_t* values);
+  void get(uint16_t* values);
 
  private:
   uint8_t enabled_bit_mask_;
   uint8_t current_idx_;
-  canio::utils::MovingAverage<uint16_t, 20> average_[ADC_ROTATION_MAX];
+  canio::utils::MovingAverage<uint32_t, 10> average_[ADC_ROTATION_MAX];
 
   void startNextAdcConversion();
 
-  void irq();
+  void irq(uint16_t value);
   friend void ::ADC_vect();
 };
 

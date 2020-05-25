@@ -34,7 +34,7 @@ class FuelSensor {
   void enable(uint8_t enable_bit_mask, uint8_t* pulses_per_ml);
   void disable();
 
-  void get(uint8_t* values);
+  void get(uint16_t* values);
 
  private:
   uint8_t enabled_bit_mask_;

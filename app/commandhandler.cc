@@ -158,9 +158,9 @@ void CommandHandler::onCANReceived(uint8_t mob) {
 
 void CommandHandler::onUpdateValues() {
   if (!updates_enabled_) return;
-  device::CANmsg canmsg = {4, {0}};
-  adc_.get(canmsg.data);
-  fuel_sensor_.get(canmsg.data);
+  device::CANmsg canmsg = {8, {0}};
+  adc_.get(canmsg.u16);
+  fuel_sensor_.get(canmsg.u16);
   device::CANbus::get().send(settings_.can_base_id, canmsg);
 }
 

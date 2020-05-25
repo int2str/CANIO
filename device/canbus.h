@@ -22,9 +22,12 @@ namespace canio {
 namespace device {
 
 struct CANmsg {
-  uint8_t length;
-  uint8_t data[8];
-};
+  uint16_t length;
+  union {
+    uint8_t data[8];
+    uint16_t u16[4];
+  };
+} __attribute__((packed));
 
 class CANbus {
   CANbus();

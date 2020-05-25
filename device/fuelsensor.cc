@@ -17,6 +17,8 @@
 
 #include <avr/interrupt.h>
 
+#include "utils/byteorder.h"
+
 static canio::device::FuelSensor* s_sensors = nullptr;
 
 ISR(PCINT0_vect) {
@@ -85,11 +87,11 @@ void FuelSensor::reset() {
   for (auto& pulses : pulses_) pulses = 0;
 }
 
-void FuelSensor::get(uint8_t* values) {
+void FuelSensor::get(uint16_t* values) {
   for (uint8_t i = 0; i != 4; ++i) {
     if ((enabled_bit_mask_ & (1 << i)) == 0) continue;
     if (pulses_[i] < (pulses_per_ml_[i] * MINIMUM_ML_TO_REPORT)) continue;
-    values[i] = pulses_[i] / pulses_per_ml_[i];
+    values[i] = utils::lsb_to_msb(pulses_[i] / pulses_per_ml_[i]);
     pulses_[i] = pulses_[i] % pulses_per_ml_[i];
   }
 }

@@ -2,12 +2,15 @@
 
 #include <avr/interrupt.h>
 
+#include "utils/byteorder.h"
 #include "utils/movingaverage.h"
 
 static canio::device::Adc* adc_ = nullptr;
 
 ISR(ADC_vect) {
-  if (adc_) adc_->irq();
+  // If I'm reading the datasheet right, "ADCL must be read first, then ADCH"...
+  uint16_t val = ADCL | (ADCH << 8);
+  if (adc_) adc_->irq(val);
 }
 
 namespace {
@@ -53,7 +56,7 @@ void Adc::enable(uint8_t enable_bit_mask) {
   current_idx_ = -1;
   startNextAdcConversion();
 }
-
+ 
 void Adc::disable() {
   adc_ = nullptr;
   enabled_bit_mask_ = 0;
@@ -61,15 +64,15 @@ void Adc::disable() {
   for (auto& avg : average_) avg.clear();
 }
 
-void Adc::get(uint8_t* values) {
+void Adc::get(uint16_t* values) {
   for (uint8_t i = 0; i != 4; ++i) {
     if ((enabled_bit_mask_ & (1 << i)) == 0) continue;
-    values[i] = average_[i].get() & 0xFF;
+    values[i] = utils::lsb_to_msb(average_[i].get());
   }
 }
 
-void Adc::irq() {
-  average_[current_idx_].push(ADCH);
+void Adc::irq(uint16_t value) {
+  average_[current_idx_].push(value);
   startNextAdcConversion();
 }
 
@@ -82,7 +85,7 @@ void Adc::startNextAdcConversion() {
     if (current_idx_ == ADC_ROTATION_MAX) current_idx_ = 0;
   } while ((enabled_bit_mask_ & (1 << current_idx_)) == 0);
 
-  ADMUX = (1 << REFS0) | (1 << ADLAR) | ADC_ROTATION[current_idx_];
+  ADMUX = (1 << REFS0) | ADC_ROTATION[current_idx_];
   ADCSRA |= (1 << ADSC);
 }
 
