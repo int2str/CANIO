@@ -18,7 +18,7 @@
 #include <avr/eeprom.h>
 
 #define SETTINGS_OFFSET 0x10
-#define SETTINGS_MARKER 0xAE10
+#define SETTINGS_MARKER 0xAE12
 #define SETTINGS_REVISION 0x01
 
 namespace {
@@ -46,7 +46,7 @@ void Settings::defaults() {
 void Settings::upgrade() {
   // Rev 1
   if (revision < 1) {
-    can_baud_rate = 1000;
+    can_baud_rate = 500;
     can_base_id = 0x4AE;
 
     array_set(io_config, 4, static_cast<uint8_t>(0));
