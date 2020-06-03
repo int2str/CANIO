@@ -16,7 +16,7 @@
 #ifndef CAN_H
 #define CAN_H
 
-constexpr uint16_t CAN_PROTOCOL_VERSION = 0x0102;
+constexpr uint16_t CAN_PROTOCOL_VERSION = 0x0103;
 
 enum CanEvents : uint8_t {
   CAN_EVT_BOOT_COMPLETE = 0xE1,
