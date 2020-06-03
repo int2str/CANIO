@@ -15,6 +15,7 @@
 
 #include "settings.h"
 
+#include <avr/interrupt.h>
 #include <avr/eeprom.h>
 #include <util/delay.h>
 
@@ -58,6 +59,8 @@ void EepromSettings::upgrade(Settings &settings) {
 }
 
 void EepromSettings::load(Settings &settings) {
+  cli();
+
   bool needs_saving = false;
 
   uint8_t retries = 5;
@@ -87,12 +90,16 @@ void EepromSettings::load(Settings &settings) {
     needs_saving = true;
   }
 
+  sei();
+
   if (needs_saving) EepromSettings::save(settings);
 }
 
 void EepromSettings::save(Settings &settings) {
+  cli();
   void *addr = reinterpret_cast<void *>(SETTINGS_OFFSET);
   eeprom_write_block(&settings, addr, sizeof(Settings));
+  sei();
 }
 
 }  // namespace app
