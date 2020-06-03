@@ -16,9 +16,11 @@
 #include "settings.h"
 
 #include <avr/eeprom.h>
+#include <util/delay.h>
 
 #define SETTINGS_OFFSET 0x10
-#define SETTINGS_MARKER 0xAE12
+#define SETTINGS_MARKER_START 0xAE00
+#define SETTINGS_MARKER_END 0x00AE
 #define SETTINGS_REVISION 0x01
 
 namespace {
@@ -33,42 +35,55 @@ void array_set(T *array, uint8_t length, T value) {
 namespace canio {
 namespace app {
 
-Settings::Settings() { defaults(); }
-
-void Settings::defaults() {
-  marker = SETTINGS_MARKER;
+void EepromSettings::defaults(Settings &settings) {
+  settings.marker_start = SETTINGS_MARKER_START;
+  settings.marker_end = SETTINGS_MARKER_END;
 
   // Force upgrade
-  revision = 0;
-  upgrade();
+  settings.revision = 0;
+  upgrade(settings);
 }
 
-void Settings::upgrade() {
+void EepromSettings::upgrade(Settings &settings) {
   // Rev 1
-  if (revision < 1) {
-    can_baud_rate = 500;
-    can_base_id = 0x4AE;
+  if (settings.revision < 1) {
+    settings.can_baud_rate = 500;
+    settings.can_base_id = 0x4AE;
 
-    array_set(io_config, 4, static_cast<uint8_t>(0));
-    array_set(io_params, 4, static_cast<uint8_t>(0));
+    array_set(settings.io_config, 4, static_cast<uint8_t>(0));
+    array_set(settings.io_params, 4, static_cast<uint8_t>(0));
   }
 
-  revision = SETTINGS_REVISION;
+  settings.revision = SETTINGS_REVISION;
 }
 
 void EepromSettings::load(Settings &settings) {
-  const void *addr = reinterpret_cast<void *>(SETTINGS_OFFSET);
-  eeprom_read_block(&settings, addr, sizeof(Settings));
   bool needs_saving = false;
 
-  if (settings.marker != SETTINGS_MARKER ||
-      settings.revision > SETTINGS_REVISION) {
-    settings.defaults();
+  uint8_t retries = 5;
+  uint8_t valid = 0;
+
+  while (!valid && retries--) {
+    const void *addr = reinterpret_cast<void *>(SETTINGS_OFFSET);
+    eeprom_read_block(&settings, addr, sizeof(Settings));
+
+    if (settings.marker_start != SETTINGS_MARKER_START ||
+        settings.marker_end != SETTINGS_MARKER_END ||
+        settings.revision > SETTINGS_REVISION) {
+      valid = false;
+      _delay_ms(250);
+    } else {
+      valid = true;
+    }
+  }
+
+  if (!valid) {
+    defaults(settings);
     needs_saving = true;
   }
 
   if (settings.revision < SETTINGS_REVISION) {
-    settings.upgrade();
+    upgrade(settings);
     needs_saving = true;
   }
 

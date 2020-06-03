@@ -31,9 +31,8 @@ enum InputType : uint8_t {
 
 const uint16_t FLAG_ENABLE_PULLUP = 0x1000;  // For ADC only
 
-class Settings {
- public:
-  uint16_t marker;
+struct Settings {
+  uint16_t marker_start;
   uint8_t revision;
 
   // Rev 1 2.0
@@ -43,19 +42,17 @@ class Settings {
   uint8_t io_config[IO_COUNT];
   uint8_t io_params[IO_COUNT];
 
-  Settings();
-
- private:
-  void defaults();
-  void upgrade();
-
-  friend class EepromSettings;
+  uint16_t marker_end;
 };
 
 class EepromSettings {
  public:
   static void load(Settings &settings);
   static void save(Settings &settings);
+
+ private:
+  static void defaults(Settings &settings);
+  static void upgrade(Settings &settings);
 };
 
 }  // namespace app
