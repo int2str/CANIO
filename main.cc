@@ -14,6 +14,7 @@
 // it online at <http://www.gnu.org/licenses/>.
 
 #include <avr/interrupt.h>
+#include <util/delay.h>
 
 #include "app/commandhandler.h"
 #include "system/watchdog.h"
@@ -36,6 +37,13 @@ void powerSave() {
 
 void run() {
   powerSave();
+
+  // This board will be in a car (duh?!). When the engine is cranked,
+  // the voltage might go nuts and trigger restarts on the board. This
+  // can seemingly cause the EEPROM read to be corrupted.
+  // So lets delay the board start for a while, to make sure we're fully
+  // up and running before proceeding.
+  _delay_ms(250);
 
   system::Watchdog::enable();
   auto& app = app::CommandHandler::init();
