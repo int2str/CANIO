@@ -17,9 +17,14 @@ namespace {
 
 void disablePullUps(uint8_t enable_bit_mask) {
   if (enable_bit_mask & 0x01) PORTC &= ~(1 << PC4);
-  if (enable_bit_mask & 0x02) PORTC &= ~(1 << PC5);
+  if (enable_bit_mask & 0x02) PORTC &= ~(1 << PC6);
   if (enable_bit_mask & 0x04) PORTB &= ~(1 << PB5);
-  if (enable_bit_mask & 0x08) PORTB &= ~(1 << PB6);
+  if (enable_bit_mask & 0x08) PORTB &= ~(1 << PB7);
+
+  if (enable_bit_mask & 0x10) PORTB &= ~(1 << PB2);
+  if (enable_bit_mask & 0x20) PORTC &= ~(1 << PC5);
+  // IO_7 has no ADC, cannot be enabled...
+  if (enable_bit_mask & 0x80) PORTB &= ~(1 << PB6);
 }
 
 }  // namespace
@@ -27,7 +32,10 @@ void disablePullUps(uint8_t enable_bit_mask) {
 namespace canio {
 namespace device {
 
-const uint8_t ADC_ROTATION[ADC_ROTATION_MAX] = {0x08, 0x09, 0x06, 0x07};
+// See README.md for pin assignments
+const uint8_t ADC_ROTATION[ADC_ROTATION_MAX] = {
+  8, 10, 6, 4, 5, 9, 0, 7
+};
 
 Adc::Adc() {
   // Disabled by default
@@ -36,7 +44,7 @@ Adc::Adc() {
 
 void Adc::enable(uint8_t enable_bit_mask) {
   if (enable_bit_mask == 0) return;
-  enabled_bit_mask_ = enable_bit_mask;
+  enabled_bit_mask_ = enable_bit_mask & 0xBF; // Mas out IO_7 (no ADC)
 
   // Generally, seems a good idea to disable internal pull-ups,
   // as they effectively become voltage dividers. But of course,
@@ -78,7 +86,7 @@ void Adc::irq(uint16_t value) {
 
 void Adc::startNextAdcConversion() {
   if (enabled_bit_mask_ == 0)
-    return;  // Prevent endless looping of no ADC is enabled
+    return;  // Prevent endless looping if no ADC is enabled
 
   do {
     ++current_idx_;

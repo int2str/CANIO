@@ -15,7 +15,8 @@
 
 #include "commandhandler.h"
 
-#include "app/settings.h"
+#include <util/delay.h>
+
 #include "can.h"
 #include "device/canbus.h"
 #include "system/watchdog.h"
@@ -36,12 +37,14 @@ uint16_t getUint16(const canio::device::CANmsg& msg, uint8_t offset) {
   return (msg.data[offset] << 8) + msg.data[offset + 1];
 }
 
-uint8_t getEnabledBitMask(uint8_t *array, uint8_t match) {
-  uint8_t mask = 0;
-  for (uint8_t i = 0; i != 4; ++i) {
-    if (array[i] == match) mask |= (1 << i);
+void welcomeBlink(canio::device::Led &led) {
+  uint8_t blink = 3;
+  while (blink--) {
+    led.on();
+    _delay_ms(150);
+    led.off();
+    _delay_ms(150);
   }
-  return mask;
 }
 
 }  // namespace
@@ -55,23 +58,24 @@ CommandHandler& CommandHandler::init() {
 }
 
 CommandHandler::CommandHandler() : updates_enabled_(1) {
-  EepromSettings::load(settings_);
+  welcomeBlink(led_);
 
   device::CANbus& canbus = device::CANbus::get();
-  canbus.setBaudrate(settings_.can_baud_rate);
-  canbus.registerReceiver(MOB_COMMAND_RX, settings_.can_base_id);
+  canbus.setBaudrate(CAN_BAUD_RATE);
+  canbus.registerReceiver(MOB_COMMAND_RX, CAN_BASE_ID);
 
-  canbus.send(settings_.can_base_id + 1,
+  canbus.send(CAN_BASE_ID,
               makeEvent16(CAN_EVT_BOOT_COMPLETE, CAN_PROTOCOL_VERSION));
 
-  fuel_sensor_.enable(getEnabledBitMask(settings_.io_config, FUEL_SENSOR), settings_.io_params);
-  adc_.enable(getEnabledBitMask(settings_.io_config, ANALOG_IN));
+  fuel_sensor_.enable();
+  adc_.enable(0x3F);
 }
 
 void CommandHandler::onCANReceived(uint8_t mob) {
   device::CANbus& canbus = device::CANbus::get();
   device::CANmsg msg = canbus.getMessage(mob);
   if (msg.length < 1) return;
+  led_.timedOn(12'000);
 
   switch (msg.data[0]) {
     case CAN_CMD_ENABLE_UPDATES:
@@ -79,81 +83,19 @@ void CommandHandler::onCANReceived(uint8_t mob) {
       updates_enabled_ = msg.data[1];
       return;
 
-    case CAN_CMD_GET_BAUD:
-      canbus.send(settings_.can_base_id + 1,
-                  makeEvent16(CAN_CMD_GET_BAUD, settings_.can_baud_rate));
-      return;
-
-    case CAN_CMD_SET_BAUD: {
-      if (msg.length != 3) break;
-      settings_.can_baud_rate = getUint16(msg, 1);
-      EepromSettings::save(settings_);
-      canbus.send(settings_.can_base_id + 1, msg);
-      return;
-    }
-
-    case CAN_CMD_GET_BASE_ID: {
-      canbus.send(settings_.can_base_id + 1,
-                  makeEvent16(CAN_CMD_GET_BASE_ID, settings_.can_base_id));
-      return;
-    }
-
-    case CAN_CMD_SET_BASE_ID: {
-      if (msg.length != 3) break;
-      settings_.can_base_id = getUint16(msg, 1);
-      EepromSettings::save(settings_);
-      canbus.send(settings_.can_base_id + 1, msg);
-      return;
-    }
-
-    case CAN_CMD_GET_IO_CONFIG: {
-      canio::device::CANmsg ret = {5, {0}};
-      ret.data[0] = CAN_CMD_GET_IO_CONFIG;
-      for (uint8_t i = 0; i != 4; ++i) ret.data[1 + i] = settings_.io_config[i];
-      canbus.send(settings_.can_base_id + 1, ret);
-      return;
-    }
-
-    case CAN_CMD_SET_IO_CONFIG: {
-      if (msg.length != 5) break;
-      for (uint8_t i = 0; i != 4; ++i) settings_.io_config[i] = msg.data[1 + i];
-      EepromSettings::save(settings_);
-      canbus.send(settings_.can_base_id + 1, msg);
-      return;
-    }
-
-    case CAN_CMD_GET_IO_PARAMS: {
-      canio::device::CANmsg ret = {5, {0}};
-      ret.data[0] = CAN_CMD_GET_IO_PARAMS;
-      for (uint8_t i = 0; i != 4; ++i) ret.data[1 + i] = settings_.io_params[i];
-      canbus.send(settings_.can_base_id + 1, ret);
-      return;
-    }
-
-    case CAN_CMD_SET_IO_PARAMS: {
-      if (msg.length != 5) break;
-      for (uint8_t i = 0; i != 4; ++i) settings_.io_params[i] = msg.data[1 + i];
-      EepromSettings::save(settings_);
-      canbus.send(settings_.can_base_id + 1, msg);
-      return;
-    }
-
     case CAN_CMD_RESET: {
       if (msg.length != 3) break;
-      uint16_t confirm = getUint16(msg, 1);
-      if (confirm != CAN_RESET_CONFIRM) break;
+      if (getUint16(msg, 1) != CAN_RESET_CONFIRM) break;
       system::Watchdog::forceRestart();
       return;
     }
 
     default:
-      canbus.send(settings_.can_base_id + 1,
-                  makeEvent16(CAN_EVT_ERROR, CAN_ERR_UNKOWN_CMD));
+      canbus.send(CAN_BASE_ID+1, makeEvent16(CAN_EVT_ERROR, CAN_ERR_UNKOWN_CMD));
       return;
   }
 
-  canbus.send(settings_.can_base_id + 1,
-              makeEvent16(CAN_EVT_ERROR, CAN_ERR_INVALID_PARAMETER));
+  canbus.send(CAN_BASE_ID+1, makeEvent16(CAN_EVT_ERROR, CAN_ERR_INVALID_PARAMETER));
 }
 
 void CommandHandler::onUpdateValues() {
@@ -161,12 +103,15 @@ void CommandHandler::onUpdateValues() {
   device::CANmsg canmsg = {8, {0}};
   adc_.get(canmsg.u16);
   fuel_sensor_.get(canmsg.u16);
-  device::CANbus::get().send(settings_.can_base_id, canmsg);
+  device::CANbus::get().send(CAN_BASE_ID, canmsg);
 }
 
 void CommandHandler::update() {
-  if (device::CANbus::get().hasMessage(MOB_COMMAND_RX))
+  led_.update();
+
+  if (device::CANbus::get().hasMessage(MOB_COMMAND_RX)) {
     onCANReceived(MOB_COMMAND_RX);
+  }
 
   // A value of 6000 here roughly equates to 50ms between updates or a 20Hz
   // update rate. Note that this is not absolute as timers are disabled and this

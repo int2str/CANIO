@@ -16,7 +16,12 @@
 #ifndef CAN_H
 #define CAN_H
 
+#include <stdint.h>
+
 constexpr uint16_t CAN_PROTOCOL_VERSION = 0x0103;
+
+constexpr uint16_t CAN_BASE_ID = 0x4AE;
+constexpr uint16_t CAN_BAUD_RATE = 500;
 
 enum CanEvents : uint8_t {
   CAN_EVT_BOOT_COMPLETE = 0xE1,
@@ -25,14 +30,6 @@ enum CanEvents : uint8_t {
 
 enum CanCommands : uint8_t {
   CAN_CMD_ENABLE_UPDATES = 0x01,
-  CAN_CMD_GET_BAUD = 0x02,
-  CAN_CMD_SET_BAUD = 0x03,
-  CAN_CMD_GET_BASE_ID = 0x04,
-  CAN_CMD_SET_BASE_ID = 0x05,
-  CAN_CMD_GET_IO_CONFIG = 0x06,
-  CAN_CMD_SET_IO_CONFIG = 0x07,
-  CAN_CMD_GET_IO_PARAMS = 0x08,
-  CAN_CMD_SET_IO_PARAMS = 0x09,
   CAN_CMD_RESET = 0xFE
 };
 

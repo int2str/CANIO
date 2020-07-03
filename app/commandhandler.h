@@ -18,7 +18,7 @@
 
 #include "device/adc.h"
 #include "device/fuelsensor.h"
-#include "settings.h"
+#include "device/led.h"
 
 namespace canio {
 namespace app {
@@ -35,11 +35,9 @@ class CommandHandler {
   void onUpdateValues();
 
   uint8_t updates_enabled_;
-  uint16_t can_base_id_;
   device::Adc adc_;
   device::FuelSensor fuel_sensor_;
-
-  Settings settings_;
+  device::Led led_;
 };
 
 }  // namespace app

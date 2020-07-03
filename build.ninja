@@ -33,14 +33,14 @@ build $builddir/can_io.elf: link $builddir/main.o | $
 build $builddir/main.o: cxx main.cc
 
 build $builddir/commandhandler.o: cxx app/commandhandler.cc
-build $builddir/settings.o: cxx app/settings.cc
-build $builddir/libapp.a: ar $builddir/commandhandler.o $builddir/settings.o
+build $builddir/libapp.a: ar $builddir/commandhandler.o
 
 build $builddir/adc.o: cxx device/adc.cc
 build $builddir/canbus.o: cxx device/canbus.cc
 build $builddir/fuelsensor.o: cxx device/fuelsensor.cc
+build $builddir/led.o: cxx device/led.cc
 build $builddir/libdevice.a: ar $builddir/adc.o $builddir/canbus.o $
-    $builddir/fuelsensor.o
+    $builddir/fuelsensor.o $builddir/led.o
 
 build $builddir/watchdog.o: cxx system/watchdog.cc
 build $builddir/libsystem.a: ar $builddir/watchdog.o

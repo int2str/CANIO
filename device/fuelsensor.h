@@ -31,7 +31,7 @@ class FuelSensor {
  public:
   FuelSensor();
 
-  void enable(uint8_t enable_bit_mask, uint8_t* pulses_per_ml);
+  void enable();
   void disable();
 
   void get(uint16_t* values);

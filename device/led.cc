@@ -13,43 +13,40 @@
 // See LICENSE for a copy of the GNU General Public License or see
 // it online at <http://www.gnu.org/licenses/>.
 
-#include <avr/interrupt.h>
+#include "led.h"
 
-#include "app/commandhandler.h"
-#include "system/watchdog.h"
+#include <avr/io.h>
 
 namespace canio {
+namespace device {
 
-void powerSave() {
-  // Un-float pins; enable pull-ups where possible
-  DDRB = 0;
-  PORTB = 0xFF;
-  DDRC = 0;
-  PORTC = ~((1 << PC2) | (1 << PC3));  // Exclude RXCAN and TXCAN
-  DDRD = 0;
-  PORTD = 0xFF;
-
-  // Engage Power Reduction Register flags
-  PRR = (1 << PRPSC) | (1 << PRSPI) | (1 << PRLIN) |
-        (1 << PRTIM1) | (1 << PRTIM1);
+Led::Led() : ticks_(0) {
+    DDRB |= (1 << PB1);
+    off();
 }
 
-
-void run() {
-  powerSave();
-
-  system::Watchdog::enable();
-  auto& app = app::CommandHandler::init();
-
-  while (true) {
-    system::Watchdog::reset();
-    app.update();
-  }
+void Led::on() {
+    PORTB |= (1 << PB1);
 }
 
+void Led::off() {
+    PORTB &= ~(1 << PB1);
+}
+
+void Led::timedOn(uint16_t ticks) {
+    if (ticks > 0) {
+        ticks_ = ticks;
+        on();
+    } else {
+        off();
+    }
+}
+
+void Led::update() {
+    if (ticks_ > 0) {
+        if (--ticks_ == 0) off();
+    }
+}
+
+}  // namespace device
 }  // namespace canio
-
-int main() {
-  sei();
-  canio::run();
-}

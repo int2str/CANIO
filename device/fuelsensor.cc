@@ -43,33 +43,33 @@ FuelSensor::FuelSensor()
   disable();
 }
 
-void FuelSensor::enable(uint8_t enable_bit_mask, uint8_t* pulses_per_ml) {
+void FuelSensor::enable() {
   reset();
 
-  enabled_bit_mask_ = enable_bit_mask;
-  for (uint8_t i = 0; i != 4; ++i) pulses_per_ml_[i] = pulses_per_ml[i];
+// enabled_bit_mask_ = enable_bit_mask;
+// for (uint8_t i = 0; i != 4; ++i) pulses_per_ml_[i] = pulses_per_ml[i];
 
   PCMSK0 = 0;
   PCMSK1 = 0;
 
   uint8_t irq_enable = 0;
 
-  if (enable_bit_mask & 0x01) {
+  if (enabled_bit_mask_ & 0x01) {
     PCMSK1 |= (1 << PCINT12);
     irq_enable |= (1 << PCIE1);
   }
 
-  if (enable_bit_mask & 0x02) {
+  if (enabled_bit_mask_ & 0x02) {
     PCMSK1 |= (1 << PCINT13);
     irq_enable |= (1 << PCIE1);
   }
 
-  if (enable_bit_mask & 0x04) {
+  if (enabled_bit_mask_ & 0x04) {
     PCMSK0 |= (1 << PCINT5);
     irq_enable |= (1 << PCIE0);
   }
 
-  if (enable_bit_mask & 0x08) {
+  if (enabled_bit_mask_ & 0x08) {
     PCMSK0 |= (1 << PCINT6);
     irq_enable |= (1 << PCIE0);
   }
