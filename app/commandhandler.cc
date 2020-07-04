@@ -67,8 +67,8 @@ CommandHandler::CommandHandler() : updates_enabled_(1) {
   canbus.send(CAN_BASE_ID,
               makeEvent16(CAN_EVT_BOOT_COMPLETE, CAN_PROTOCOL_VERSION));
 
-  fuel_sensor_.enable();
-  adc_.enable(0x3F);
+  fuel_sensor_.enable(0x40);
+  adc_.enable(0x3E);
 }
 
 void CommandHandler::onCANReceived(uint8_t mob) {
@@ -91,19 +91,33 @@ void CommandHandler::onCANReceived(uint8_t mob) {
     }
 
     default:
-      canbus.send(CAN_BASE_ID+1, makeEvent16(CAN_EVT_ERROR, CAN_ERR_UNKOWN_CMD));
+      canbus.send(CAN_BASE_ID, makeEvent16(CAN_EVT_ERROR, CAN_ERR_UNKOWN_CMD));
       return;
   }
 
-  canbus.send(CAN_BASE_ID+1, makeEvent16(CAN_EVT_ERROR, CAN_ERR_INVALID_PARAMETER));
+  canbus.send(CAN_BASE_ID, makeEvent16(CAN_EVT_ERROR, CAN_ERR_INVALID_PARAMETER));
 }
 
 void CommandHandler::onUpdateValues() {
   if (!updates_enabled_) return;
-  device::CANmsg canmsg = {8, {0}};
-  adc_.get(canmsg.u16);
-  fuel_sensor_.get(canmsg.u16);
-  device::CANbus::get().send(CAN_BASE_ID, canmsg);
+
+  static bool one = true;
+
+  if (one) {
+    device::CANmsg canmsg1 = {8, {0}};
+    adc_.get(canmsg1.u16[0], 1);
+    adc_.get(canmsg1.u16[1], 2);
+    adc_.get(canmsg1.u16[2], 3);
+    adc_.get(canmsg1.u16[3], 5);
+    device::CANbus::get().send(CAN_BASE_ID + 1, canmsg1);
+  } else {
+    device::CANmsg canmsg2 = {4, {0}};
+    adc_.get(canmsg2.u16[0], 4);
+    fuel_sensor_.get(canmsg2.u16[1], 6);
+    device::CANbus::get().send(CAN_BASE_ID + 2, canmsg2);
+  }
+
+  one = !one;
 }
 
 void CommandHandler::update() {
@@ -119,7 +133,7 @@ void CommandHandler::update() {
   // function. If more stability/accuracy is required here, switch to actual
   // timers...
   static uint16_t update_delay = 0;
-  if (update_delay++ == 6000) {
+  if (update_delay++ == 3000) {
     update_delay = 0;
     onUpdateValues();
   }

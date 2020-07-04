@@ -29,12 +29,6 @@ ISR(PCINT1_vect) {
   if (s_sensors) s_sensors->updateIrq1();
 }
 
-namespace {
-
-const uint8_t MINIMUM_ML_TO_REPORT = 5;
-
-}  // namespace
-
 namespace canio {
 namespace device {
 
@@ -43,11 +37,10 @@ FuelSensor::FuelSensor()
   disable();
 }
 
-void FuelSensor::enable() {
+void FuelSensor::enable(uint8_t enable_bit_mask) {
   reset();
 
-// enabled_bit_mask_ = enable_bit_mask;
-// for (uint8_t i = 0; i != 4; ++i) pulses_per_ml_[i] = pulses_per_ml[i];
+ enabled_bit_mask_ = enable_bit_mask;
 
   PCMSK0 = 0;
   PCMSK1 = 0;
@@ -60,7 +53,7 @@ void FuelSensor::enable() {
   }
 
   if (enabled_bit_mask_ & 0x02) {
-    PCMSK1 |= (1 << PCINT13);
+    PCMSK1 |= (1 << PCINT14);
     irq_enable |= (1 << PCIE1);
   }
 
@@ -70,6 +63,26 @@ void FuelSensor::enable() {
   }
 
   if (enabled_bit_mask_ & 0x08) {
+    PCMSK0 |= (1 << PCINT7);
+    irq_enable |= (1 << PCIE0);
+  }
+
+  if (enabled_bit_mask_ & 0x10) {
+    PCMSK0 |= (1 << PCINT2);
+    irq_enable |= (1 << PCIE0);
+  }
+
+  if (enabled_bit_mask_ & 0x20) {
+    PCMSK1 |= (1 << PCINT13);
+    irq_enable |= (1 << PCIE1);
+  }
+
+  if (enabled_bit_mask_ & 0x40) {
+    PCMSK1 |= (1 << PCINT15);
+    irq_enable |= (1 << PCIE1);
+  }
+
+  if (enabled_bit_mask_ & 0x80) {
     PCMSK0 |= (1 << PCINT6);
     irq_enable |= (1 << PCIE0);
   }
@@ -87,13 +100,9 @@ void FuelSensor::reset() {
   for (auto& pulses : pulses_) pulses = 0;
 }
 
-void FuelSensor::get(uint16_t* values) {
-  for (uint8_t i = 0; i != 4; ++i) {
-    if ((enabled_bit_mask_ & (1 << i)) == 0) continue;
-    if (pulses_[i] < (pulses_per_ml_[i] * MINIMUM_ML_TO_REPORT)) continue;
-    values[i] = utils::lsb_to_msb(pulses_[i] / pulses_per_ml_[i]);
-    pulses_[i] = pulses_[i] % pulses_per_ml_[i];
-  }
+void FuelSensor::get(uint16_t& value, uint8_t offset) {
+  value = pulses_[offset];
+  // pulses_[offset] = 0;
 }
 
 void FuelSensor::updateIrq0() {
@@ -105,9 +114,19 @@ void FuelSensor::updateIrq0() {
     ++pulses_[2];
   }
 
-  if ((enabled_bit_mask_ & (1 << 3)) && (change & (1 << PB6)) &&
-      (PINB & (1 << PB6)) == 0) {
+  if ((enabled_bit_mask_ & (1 << 3)) && (change & (1 << PB7)) &&
+      (PINB & (1 << PB7)) == 0) {
     ++pulses_[3];
+  }
+
+  if ((enabled_bit_mask_ & (1 << 4)) && (change & (1 << PB2)) &&
+      (PINB & (1 << PB2)) == 0) {
+    ++pulses_[4];
+  }
+
+  if ((enabled_bit_mask_ & (1 << 7)) && (change & (1 << PB6)) &&
+      (PINB & (1 << PB6)) == 0) {
+    ++pulses_[7];
   }
 }
 
@@ -120,9 +139,19 @@ void FuelSensor::updateIrq1() {
     ++pulses_[0];
   }
 
-  if ((enabled_bit_mask_ & (1 << 1)) && (change & (1 << PC5)) &&
-      (PINC & (1 << PC5)) == 0) {
+  if ((enabled_bit_mask_ & (1 << 1)) && (change & (1 << PC6)) &&
+      (PINC & (1 << PC6)) == 0) {
     ++pulses_[1];
+  }
+
+  if ((enabled_bit_mask_ & (1 << 5)) && (change & (1 << PC5)) &&
+      (PINC & (1 << PC5)) == 0) {
+    ++pulses_[5];
+  }
+
+  if ((enabled_bit_mask_ & (1 << 6)) && (change & (1 << PC7)) &&
+      (PINC & (1 << PC7)) == 0) {
+    ++pulses_[6];
   }
 }
 
