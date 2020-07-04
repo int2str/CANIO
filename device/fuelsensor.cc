@@ -17,8 +17,6 @@
 
 #include <avr/interrupt.h>
 
-#include "utils/byteorder.h"
-
 static canio::device::FuelSensor* s_sensors = nullptr;
 
 ISR(PCINT0_vect) {
@@ -100,9 +98,10 @@ void FuelSensor::reset() {
   for (auto& pulses : pulses_) pulses = 0;
 }
 
-void FuelSensor::get(uint16_t& value, uint8_t offset) {
-  value = pulses_[offset];
+uint16_t FuelSensor::get(uint8_t offset) {
+  uint16_t pulses = pulses_[offset];
   // pulses_[offset] = 0;
+  return pulses;
 }
 
 void FuelSensor::updateIrq0() {

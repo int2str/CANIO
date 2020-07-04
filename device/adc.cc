@@ -2,7 +2,6 @@
 
 #include <avr/interrupt.h>
 
-#include "utils/byteorder.h"
 #include "utils/movingaverage.h"
 
 static canio::device::Adc* adc_ = nullptr;
@@ -72,8 +71,8 @@ void Adc::disable() {
   for (auto& avg : average_) avg.clear();
 }
 
-void Adc::get(uint16_t& value, uint8_t offset) {
-  value = utils::lsb_to_msb(average_[offset].get());
+uint16_t Adc::get(uint8_t offset) {
+  return average_[offset].get();
 }
 
 void Adc::irq(uint16_t value) {

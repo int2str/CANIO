@@ -20,6 +20,7 @@
 #include "can.h"
 #include "device/canbus.h"
 #include "system/watchdog.h"
+#include "utils/byteorder.h"
 
 namespace {
 
@@ -105,15 +106,15 @@ void CommandHandler::onUpdateValues() {
 
   if (one) {
     device::CANmsg canmsg1 = {8, {0}};
-    adc_.get(canmsg1.u16[0], 1);
-    adc_.get(canmsg1.u16[1], 2);
-    adc_.get(canmsg1.u16[2], 3);
-    adc_.get(canmsg1.u16[3], 5);
+    canmsg1.u16[0] = utils::lsb_to_msb(adc_.get(1));
+    canmsg1.u16[1] = utils::lsb_to_msb(adc_.get(2));
+    canmsg1.u16[2] = utils::lsb_to_msb(adc_.get(3));
+    canmsg1.u16[3] = utils::lsb_to_msb(adc_.get(5));
     device::CANbus::get().send(CAN_BASE_ID + 1, canmsg1);
   } else {
     device::CANmsg canmsg2 = {4, {0}};
-    adc_.get(canmsg2.u16[0], 4);
-    fuel_sensor_.get(canmsg2.u16[1], 6);
+    canmsg2.u16[0] = utils::lsb_to_msb(adc_.get(4));
+    canmsg2.u16[1] = utils::lsb_to_msb(fuel_sensor_.get(6));
     device::CANbus::get().send(CAN_BASE_ID + 2, canmsg2);
   }
 

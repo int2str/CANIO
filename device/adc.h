@@ -22,7 +22,7 @@ class Adc {
   void disable();
   void enable(uint8_t enable_bit_mask);
 
-  void get(uint16_t& value, uint8_t offset);
+  uint16_t get(uint8_t offset);
 
  private:
   uint8_t enabled_bit_mask_;
