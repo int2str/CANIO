@@ -17,6 +17,9 @@
 
 #include <avr/interrupt.h>
 
+// 68'000 pulses/gallon
+static constexpr uint16_t PULSES_PER_ML = 18;
+
 static canio::device::FuelSensor* s_sensors = nullptr;
 
 ISR(PCINT0_vect) {
@@ -98,9 +101,13 @@ void FuelSensor::reset() {
   for (auto& pulses : pulses_) pulses = 0;
 }
 
-uint16_t FuelSensor::get(uint8_t offset) {
+uint16_t FuelSensor::getMl(uint8_t offset) {
   uint16_t pulses = pulses_[offset];
-  // pulses_[offset] = 0;
+  if (pulses < PULSES_PER_ML) return 0;
+
+  uint16_t ml = pulses / PULSES_PER_ML;
+  pulses_[offset] -= (ml * PULSES_PER_ML);
+
   return pulses;
 }
 

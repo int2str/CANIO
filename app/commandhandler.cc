@@ -112,9 +112,12 @@ void CommandHandler::onUpdateValues() {
     canmsg1.u16[3] = utils::lsb_to_msb(adc_.get(5));
     device::CANbus::get().send(CAN_BASE_ID + 1, canmsg1);
   } else {
+    uint16_t tank_sensor = adc_.get(4);
+    uint16_t fuel_level = fuel_level_.recalculate(tank_sensor, fuel_sensor_.getMl(6));
+
     device::CANmsg canmsg2 = {4, {0}};
-    canmsg2.u16[0] = utils::lsb_to_msb(adc_.get(4));
-    canmsg2.u16[1] = utils::lsb_to_msb(fuel_sensor_.get(6));
+    canmsg2.u16[0] = utils::lsb_to_msb(tank_sensor);
+    canmsg2.u16[1] = utils::lsb_to_msb(fuel_level);
     device::CANbus::get().send(CAN_BASE_ID + 2, canmsg2);
   }
 
@@ -128,7 +131,7 @@ void CommandHandler::update() {
     onCANReceived(MOB_COMMAND_RX);
   }
 
-  // A value of 6000 here roughly equates to 50ms between updates or a 20Hz
+  // A value of 3000 here roughly equates to 25ms between updates or a 40Hz
   // update rate. Note that this is not absolute as timers are disabled and this
   // depends on the frequency at which the main update loop calls this update()
   // function. If more stability/accuracy is required here, switch to actual

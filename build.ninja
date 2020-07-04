@@ -33,7 +33,8 @@ build $builddir/can_io.elf: link $builddir/main.o | $
 build $builddir/main.o: cxx main.cc
 
 build $builddir/commandhandler.o: cxx app/commandhandler.cc
-build $builddir/libapp.a: ar $builddir/commandhandler.o
+build $builddir/fuellevel.o: cxx app/fuellevel.cc
+build $builddir/libapp.a: ar $builddir/commandhandler.o $builddir/fuellevel.o
 
 build $builddir/adc.o: cxx device/adc.cc
 build $builddir/canbus.o: cxx device/canbus.cc

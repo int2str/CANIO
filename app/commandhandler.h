@@ -16,6 +16,7 @@
 #ifndef COMMANDHANDLER_H
 #define COMMANDHANDLER_H
 
+#include "fuellevel.h"
 #include "device/adc.h"
 #include "device/fuelsensor.h"
 #include "device/led.h"
@@ -38,6 +39,7 @@ class CommandHandler {
   device::Adc adc_;
   device::FuelSensor fuel_sensor_;
   device::Led led_;
+  FuelLevel fuel_level_;
 };
 
 }  // namespace app

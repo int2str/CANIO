@@ -13,48 +13,28 @@
 // See LICENSE for a copy of the GNU General Public License or see
 // it online at <http://www.gnu.org/licenses/>.
 
-#ifndef FUELSENSOR_H
-#define FUELSENSOR_H
+#ifndef FUELLEVEL_H
+#define FUELLEVEL_H
 
-#include <avr/interrupt.h>
 #include <stdint.h>
 
-#include "utils/cpp.h"
-
-extern "C" void PCINT0_vect() __attribute__((signal));
-extern "C" void PCINT1_vect() __attribute__((signal));
+#include "utils/movingaverage.h"
 
 namespace canio {
-namespace device {
+namespace app {
 
-class FuelSensor {
- public:
-  FuelSensor();
+class FuelLevel {
+  public:
+    FuelLevel();
+    uint16_t recalculate(uint16_t tank_sensors, uint16_t ml_used);
 
-  void enable(uint8_t enable_bit_mask);
-  void disable();
-
-  uint16_t getMl(uint8_t offset);
-
- private:
-  uint8_t enabled_bit_mask_;
-  uint16_t pulses_[8];
-
-  uint8_t pcint0_last_state_;
-  uint8_t pcint1_last_state_;
-
-  friend void ::PCINT0_vect();
-  friend void ::PCINT1_vect();
-
-  void updateIrq0();
-  void updateIrq1();
-
-  void reset();
-
-  DISALLOW_COPY_AND_ASSIGN(FuelSensor);
+  private:
+    utils::MovingAverage<uint32_t, 20> tank_sensor_average_;
+    uint16_t samples_collected_;
+    uint16_t fuel_level_reference_ml_;
 };
 
-}  // namespace device
+}  // namespace app
 }  // namespace canio
 
-#endif  // FUELSENSOR_H
+#endif  // FUELLEVEL_H
