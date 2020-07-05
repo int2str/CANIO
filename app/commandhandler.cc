@@ -38,7 +38,7 @@ uint16_t getUint16(const canio::device::CANmsg& msg, uint8_t offset) {
   return (msg.data[offset] << 8) + msg.data[offset + 1];
 }
 
-void welcomeBlink(canio::device::Led &led) {
+void welcomeBlink(canio::device::Led& led) {
   uint8_t blink = 3;
   while (blink--) {
     led.on();
@@ -96,7 +96,8 @@ void CommandHandler::onCANReceived(uint8_t mob) {
       return;
   }
 
-  canbus.send(CAN_BASE_ID, makeEvent16(CAN_EVT_ERROR, CAN_ERR_INVALID_PARAMETER));
+  canbus.send(CAN_BASE_ID,
+              makeEvent16(CAN_EVT_ERROR, CAN_ERR_INVALID_PARAMETER));
 }
 
 void CommandHandler::onUpdateValues() {
@@ -113,7 +114,8 @@ void CommandHandler::onUpdateValues() {
     device::CANbus::get().send(CAN_BASE_ID + 1, canmsg1);
   } else {
     uint16_t tank_sensor = adc_.get(4);
-    uint16_t fuel_level = fuel_level_.recalculate(tank_sensor, fuel_sensor_.getMl(6));
+    uint16_t fuel_level =
+        fuel_level_.recalculate(tank_sensor, fuel_sensor_.getMl(6));
 
     device::CANmsg canmsg2 = {4, {0}};
     canmsg2.u16[0] = utils::lsb_to_msb(tank_sensor);

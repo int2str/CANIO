@@ -33,8 +33,7 @@ namespace device {
 
 // See README.md for pin assignments
 const uint8_t ADC_ROTATION[ADC_ROTATION_MAX] = {
-  8, 10, 6, 4, 5, 9, /* Unused */ 0, 7
-};
+    8, 10, 6, 4, 5, 9, /* Unused */ 0, 7};
 
 Adc::Adc() {
   // Disabled by default
@@ -43,7 +42,7 @@ Adc::Adc() {
 
 void Adc::enable(uint8_t enable_bit_mask) {
   if (enable_bit_mask == 0) return;
-  enabled_bit_mask_ = enable_bit_mask & 0xBF; // Mask out IO_7 (no ADC)
+  enabled_bit_mask_ = enable_bit_mask & 0xBF;  // Mask out IO_7 (no ADC)
 
   // Generally, seems a good idea to disable internal pull-ups,
   // as they effectively become voltage dividers. But of course,
@@ -63,7 +62,7 @@ void Adc::enable(uint8_t enable_bit_mask) {
   current_idx_ = -1;
   startNextAdcConversion();
 }
- 
+
 void Adc::disable() {
   adc_ = nullptr;
   enabled_bit_mask_ = 0;
@@ -71,9 +70,7 @@ void Adc::disable() {
   for (auto& avg : average_) avg.clear();
 }
 
-uint16_t Adc::get(uint8_t offset) {
-  return average_[offset].get();
-}
+uint16_t Adc::get(uint8_t offset) { return average_[offset].get(); }
 
 void Adc::irq(uint16_t value) {
   average_[current_idx_].push(value);

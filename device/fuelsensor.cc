@@ -41,7 +41,7 @@ FuelSensor::FuelSensor()
 void FuelSensor::enable(uint8_t enable_bit_mask) {
   reset();
 
- enabled_bit_mask_ = enable_bit_mask;
+  enabled_bit_mask_ = enable_bit_mask;
 
   PCMSK0 = 0;
   PCMSK1 = 0;
