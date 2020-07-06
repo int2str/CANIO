@@ -26,7 +26,10 @@ namespace app {
 class FuelLevel {
   public:
     FuelLevel();
+
     uint16_t recalculate(uint16_t tank_sensors, uint16_t ml_used);
+    bool initialSamplesCollected() const;
+    void reset();
 
   private:
     utils::MovingAverage<uint32_t, 20> tank_sensor_average_;

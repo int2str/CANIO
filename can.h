@@ -25,20 +25,7 @@ constexpr uint16_t CAN_BAUD_RATE = 500;
 
 enum CanEvents : uint8_t {
   CAN_EVT_BOOT_COMPLETE = 0xE1,
-  CAN_EVT_ERROR = 0xEE,
 };
-
-enum CanCommands : uint8_t {
-  CAN_CMD_ENABLE_UPDATES = 0x01,
-  CAN_CMD_RESET = 0xFE
-};
-
-enum CanErrors : uint8_t {
-  CAN_ERR_UNKOWN_CMD = 0x01,
-  CAN_ERR_INVALID_PARAMETER = 0x02,
-};
-
-constexpr uint16_t CAN_RESET_CONFIRM = 0xDEAD;
 
 
 #endif  // CAN_H

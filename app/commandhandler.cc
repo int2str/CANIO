@@ -26,16 +26,22 @@ namespace {
 
 constexpr uint8_t MOB_COMMAND_RX = 1;
 
+// A value of 3000 here roughly equates to 25ms between updates or a 40Hz
+// update rate. Note that this is not absolute as timers are disabled and this
+// depends on the frequency at which the main update loop calls this update()
+// function. If more stability/accuracy is required here, switch to actual
+// timers...
+constexpr uint16_t UPDATED_EVERY_N_LOOPS = 3'000;
+
+// Defined in the PDM config...
+constexpr uint16_t CAN_KEYPAD_EVENT_ID = 0x520;
+
 canio::device::CANmsg makeEvent16(uint8_t evt, uint16_t data) {
   canio::device::CANmsg canmsg = {3, {0}};
   canmsg.data[0] = evt;
   canmsg.data[1] = (data >> 8) & 0xFF;
   canmsg.data[2] = data & 0xFF;
   return canmsg;
-}
-
-uint16_t getUint16(const canio::device::CANmsg& msg, uint8_t offset) {
-  return (msg.data[offset] << 8) + msg.data[offset + 1];
 }
 
 void welcomeBlink(canio::device::Led& led) {
@@ -63,7 +69,7 @@ CommandHandler::CommandHandler() : updates_enabled_(1) {
 
   device::CANbus& canbus = device::CANbus::get();
   canbus.setBaudrate(CAN_BAUD_RATE);
-  canbus.registerReceiver(MOB_COMMAND_RX, CAN_BASE_ID);
+  canbus.registerReceiver(MOB_COMMAND_RX, CAN_KEYPAD_EVENT_ID);
 
   canbus.send(CAN_BASE_ID,
               makeEvent16(CAN_EVT_BOOT_COMPLETE, CAN_PROTOCOL_VERSION));
@@ -75,29 +81,12 @@ CommandHandler::CommandHandler() : updates_enabled_(1) {
 void CommandHandler::onCANReceived(uint8_t mob) {
   device::CANbus& canbus = device::CANbus::get();
   device::CANmsg msg = canbus.getMessage(mob);
-  if (msg.length < 1) return;
-  led_.timedOn(12'000);
 
-  switch (msg.data[0]) {
-    case CAN_CMD_ENABLE_UPDATES:
-      if (msg.length != 2) break;
-      updates_enabled_ = msg.data[1];
-      return;
-
-    case CAN_CMD_RESET: {
-      if (msg.length != 3) break;
-      if (getUint16(msg, 1) != CAN_RESET_CONFIRM) break;
-      system::Watchdog::forceRestart();
-      return;
-    }
-
-    default:
-      canbus.send(CAN_BASE_ID, makeEvent16(CAN_EVT_ERROR, CAN_ERR_UNKOWN_CMD));
-      return;
+  if (msg.length < 5) return;
+  uint8_t fuel_reset_button_pressed = msg.data[4];
+  if (fuel_reset_button_pressed && fuel_level_.initialSamplesCollected()) {
+    fuel_level_.reset();
   }
-
-  canbus.send(CAN_BASE_ID,
-              makeEvent16(CAN_EVT_ERROR, CAN_ERR_INVALID_PARAMETER));
 }
 
 void CommandHandler::onUpdateValues() {
@@ -121,6 +110,15 @@ void CommandHandler::onUpdateValues() {
     canmsg2.u16[0] = utils::lsb_to_msb(tank_sensor);
     canmsg2.u16[1] = utils::lsb_to_msb(fuel_level);
     device::CANbus::get().send(CAN_BASE_ID + 2, canmsg2);
+
+    // Turn on LED while initial samples are collected
+    if (!fuel_level_.initialSamplesCollected()) {
+      // The math here ensures it's still on until we check again....
+      // Also we're using timed on here so we don't have to continuously
+      // issue an "off" command after initial sampling.
+      led_.timedOn(UPDATED_EVERY_N_LOOPS * 2 + 1);
+    }
+
   }
 
   one = !one;
@@ -133,13 +131,8 @@ void CommandHandler::update() {
     onCANReceived(MOB_COMMAND_RX);
   }
 
-  // A value of 3000 here roughly equates to 25ms between updates or a 40Hz
-  // update rate. Note that this is not absolute as timers are disabled and this
-  // depends on the frequency at which the main update loop calls this update()
-  // function. If more stability/accuracy is required here, switch to actual
-  // timers...
   static uint16_t update_delay = 0;
-  if (update_delay++ == 3000) {
+  if (update_delay++ == UPDATED_EVERY_N_LOOPS) {
     update_delay = 0;
     onUpdateValues();
   }
