@@ -92,8 +92,10 @@ void CommandHandler::onCANReceived(uint8_t mob) {
 void CommandHandler::onUpdateValues() {
   if (!updates_enabled_) return;
 
+  // Alternate between sending brake pressures and fuel data.
+  // Sending is asynchronous and we're not waiting for the
+  // transmission to complete, so can't send both back to back.
   static bool one = true;
-
   if (one) {
     device::CANmsg canmsg1 = {8, {0}};
     canmsg1.u16[0] = utils::lsb_to_msb(adc_.get(1));
@@ -101,6 +103,7 @@ void CommandHandler::onUpdateValues() {
     canmsg1.u16[2] = utils::lsb_to_msb(adc_.get(3));
     canmsg1.u16[3] = utils::lsb_to_msb(adc_.get(5));
     device::CANbus::get().send(CAN_BASE_ID + 1, canmsg1);
+
   } else {
     uint16_t tank_sensor = adc_.get(4);
     uint16_t fuel_level =
