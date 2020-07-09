@@ -64,7 +64,7 @@ CommandHandler& CommandHandler::init() {
   return commandhandler;
 }
 
-CommandHandler::CommandHandler() : updates_enabled_(1) {
+CommandHandler::CommandHandler() {
   welcomeBlink(led_);
 
   device::CANbus& canbus = device::CANbus::get();
@@ -90,8 +90,6 @@ void CommandHandler::onCANReceived(uint8_t mob) {
 }
 
 void CommandHandler::onUpdateValues() {
-  if (!updates_enabled_) return;
-
   // Alternate between sending brake pressures and fuel data.
   // Sending is asynchronous and we're not waiting for the
   // transmission to complete, so can't send both back to back.

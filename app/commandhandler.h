@@ -35,7 +35,6 @@ class CommandHandler {
   void onCANReceived(uint8_t mob);
   void onUpdateValues();
 
-  uint8_t updates_enabled_;
   device::Adc adc_;
   device::FuelSensor fuel_sensor_;
   device::Led led_;
