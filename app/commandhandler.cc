@@ -78,6 +78,34 @@ CommandHandler::CommandHandler() {
   adc_.enable(0x3E);
 }
 
+void CommandHandler::updateDriverInputs() {
+  device::CANmsg canmsg1 = {8, {0}};
+  canmsg1.u16[0] = utils::lsb_to_msb(adc_.get(1));
+  canmsg1.u16[1] = utils::lsb_to_msb(adc_.get(2));
+  canmsg1.u16[2] = utils::lsb_to_msb(adc_.get(3));
+  canmsg1.u16[3] = utils::lsb_to_msb(adc_.get(5));
+  device::CANbus::get().send(CAN_BASE_ID + 1, canmsg1);
+}
+
+void CommandHandler::updateFuel() {
+  uint16_t tank_sensor = adc_.get(4);
+  uint16_t fuel_level =
+      fuel_level_.recalculate(tank_sensor, fuel_sensor_.getMl(6));
+
+  device::CANmsg canmsg2 = {4, {0}};
+  canmsg2.u16[0] = utils::lsb_to_msb(tank_sensor);
+  canmsg2.u16[1] = utils::lsb_to_msb(fuel_level);
+  device::CANbus::get().send(CAN_BASE_ID + 2, canmsg2);
+
+  // Turn on LED while initial samples are collected
+  if (!fuel_level_.initialSamplesCollected()) {
+    // The math here ensures it's still on until we check again....
+    // Also we're using timed on here so we don't have to continuously
+    // issue an "off" command after initial sampling.
+    led_.timedOn(UPDATED_EVERY_N_LOOPS * 2 + 1);
+  }
+}
+
 void CommandHandler::onCANReceived(uint8_t mob) {
   device::CANbus& canbus = device::CANbus::get();
   device::CANmsg msg = canbus.getMessage(mob);
@@ -95,31 +123,9 @@ void CommandHandler::onUpdateValues() {
   // transmission to complete, so can't send both back to back.
   static bool one = true;
   if (one) {
-    device::CANmsg canmsg1 = {8, {0}};
-    canmsg1.u16[0] = utils::lsb_to_msb(adc_.get(1));
-    canmsg1.u16[1] = utils::lsb_to_msb(adc_.get(2));
-    canmsg1.u16[2] = utils::lsb_to_msb(adc_.get(3));
-    canmsg1.u16[3] = utils::lsb_to_msb(adc_.get(5));
-    device::CANbus::get().send(CAN_BASE_ID + 1, canmsg1);
-
+    updateDriverInputs();
   } else {
-    uint16_t tank_sensor = adc_.get(4);
-    uint16_t fuel_level =
-        fuel_level_.recalculate(tank_sensor, fuel_sensor_.getMl(6));
-
-    device::CANmsg canmsg2 = {4, {0}};
-    canmsg2.u16[0] = utils::lsb_to_msb(tank_sensor);
-    canmsg2.u16[1] = utils::lsb_to_msb(fuel_level);
-    device::CANbus::get().send(CAN_BASE_ID + 2, canmsg2);
-
-    // Turn on LED while initial samples are collected
-    if (!fuel_level_.initialSamplesCollected()) {
-      // The math here ensures it's still on until we check again....
-      // Also we're using timed on here so we don't have to continuously
-      // issue an "off" command after initial sampling.
-      led_.timedOn(UPDATED_EVERY_N_LOOPS * 2 + 1);
-    }
-
+    updateFuel();
   }
 
   one = !one;

@@ -32,6 +32,9 @@ class CommandHandler {
   void update();
 
  private:
+  void updateDriverInputs();
+  void updateFuel();
+
   void onCANReceived(uint8_t mob);
   void onUpdateValues();
 
