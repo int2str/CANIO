@@ -13,41 +13,14 @@
 // See LICENSE for a copy of the GNU General Public License or see
 // it online at <http://www.gnu.org/licenses/>.
 
-#ifndef MOVINGAVERAGE_H
-#define MOVINGAVERAGE_H
+#ifndef EVENTS_H
+#define EVENTS_H
 
-#include <stdlib.h>
+// !!! EVENT NUMBERS MUST BE UNIQUE !!!
+// !!! Must also fit inside uint8_t !!!
 
-namespace canio {
-namespace utils {
-
-template <class T, size_t WINDOW>
-class MovingAverage {
- public:
-  MovingAverage() : buffer{0}, index(0), sum(0) {}
-
-  void push(const T value) {
-    sum -= buffer[index];
-    sum += value;
-    buffer[index] = value;
-    if (++index == WINDOW) index = 0;
-  }
-
-  T get() const { return sum / WINDOW; }
-
-  void clear() {
-    sum = 0;
-    index = 0;
-    for (auto &i : buffer) i = 0;
-  }
-
- private:
-  T buffer[WINDOW];
-  size_t index;
-  T sum;
+enum CANIO_EVENTS : uint8_t {
+    EVENT_UPDATE = 1,
 };
 
-}  // namespace utils
-}  // namespace canio
-
-#endif  // MOVINGAVERAGE_H
+#endif

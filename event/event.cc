@@ -13,41 +13,15 @@
 // See LICENSE for a copy of the GNU General Public License or see
 // it online at <http://www.gnu.org/licenses/>.
 
-#ifndef MOVINGAVERAGE_H
-#define MOVINGAVERAGE_H
-
-#include <stdlib.h>
+#include "event/event.h"
 
 namespace canio {
-namespace utils {
+namespace event {
 
-template <class T, size_t WINDOW>
-class MovingAverage {
- public:
-  MovingAverage() : buffer{0}, index(0), sum(0) {}
+Event::Event(const uint8_t id, const uint8_t param)
+    : id(id), param(param), delay(0), posted(0) {}
 
-  void push(const T value) {
-    sum -= buffer[index];
-    sum += value;
-    buffer[index] = value;
-    if (++index == WINDOW) index = 0;
-  }
+bool Event::operator==(const Event &rhs) const { return this->id == rhs.id; }
 
-  T get() const { return sum / WINDOW; }
-
-  void clear() {
-    sum = 0;
-    index = 0;
-    for (auto &i : buffer) i = 0;
-  }
-
- private:
-  T buffer[WINDOW];
-  size_t index;
-  T sum;
-};
-
-}  // namespace utils
-}  // namespace canio
-
-#endif  // MOVINGAVERAGE_H
+}
+}

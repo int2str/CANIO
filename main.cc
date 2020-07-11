@@ -16,7 +16,10 @@
 #include <avr/interrupt.h>
 
 #include "app/commandhandler.h"
+#include "event/loop.h"
 #include "system/watchdog.h"
+
+#include "events.h"
 
 namespace canio {
 
@@ -38,11 +41,12 @@ void run() {
   powerSave();
 
   system::Watchdog::enable();
-  auto& app = app::CommandHandler::init();
+  app::CommandHandler::init();
 
   while (true) {
+    event::Loop::post(event::Event(EVENT_UPDATE));
+    event::Loop::dispatch();
     system::Watchdog::reset();
-    app.update();
   }
 }
 

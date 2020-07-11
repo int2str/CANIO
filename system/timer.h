@@ -13,41 +13,30 @@
 // See LICENSE for a copy of the GNU General Public License or see
 // it online at <http://www.gnu.org/licenses/>.
 
-#ifndef MOVINGAVERAGE_H
-#define MOVINGAVERAGE_H
+#ifndef TIMER_H
+#define TIMER_H
 
-#include <stdlib.h>
+#include <stdint.h>
 
 namespace canio {
-namespace utils {
+namespace system {
 
-template <class T, size_t WINDOW>
-class MovingAverage {
+// Simple tick counter for various timing tasks.
+// Using this will enable global interrupts and use
+// timer0.
+class Timer {
+  Timer();
+
  public:
-  MovingAverage() : buffer{0}, index(0), sum(0) {}
-
-  void push(const T value) {
-    sum -= buffer[index];
-    sum += value;
-    buffer[index] = value;
-    if (++index == WINDOW) index = 0;
-  }
-
-  T get() const { return sum / WINDOW; }
-
-  void clear() {
-    sum = 0;
-    index = 0;
-    for (auto &i : buffer) i = 0;
-  }
+  // This is lazily initialized. First call will always
+  // return 0. TImer overflows every ~49 days.
+  static uint32_t millis();
 
  private:
-  T buffer[WINDOW];
-  size_t index;
-  T sum;
+  uint32_t millis_impl() const;
 };
 
-}  // namespace utils
-}  // namespace canio
+}
+}
 
-#endif  // MOVINGAVERAGE_H
+#endif  // TIMER_H

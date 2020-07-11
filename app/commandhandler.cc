@@ -17,10 +17,12 @@
 
 #include <util/delay.h>
 
-#include "can.h"
 #include "device/canbus.h"
 #include "system/watchdog.h"
 #include "utils/byteorder.h"
+
+#include "can.h"
+#include "events.h"
 
 namespace {
 
@@ -120,7 +122,8 @@ void CommandHandler::onUpdateValues() {
   updateFuel();
 }
 
-void CommandHandler::update() {
+void CommandHandler::onEvent(const event::Event &event) {
+  if (event.id != EVENT_UPDATE) return;
   led_.update();
 
   if (device::CANbus::get().hasMessage(MOB_COMMAND_RX)) {

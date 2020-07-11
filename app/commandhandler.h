@@ -20,16 +20,19 @@
 #include "device/adc.h"
 #include "device/fuelsensor.h"
 #include "device/led.h"
+#include "event/loop.h"
 
 namespace canio {
 namespace app {
 
-class CommandHandler {
+class CommandHandler : public event::Handler {
   CommandHandler();
 
  public:
   static CommandHandler& init();
-  void update();
+
+ protected:
+  void onEvent(const event::Event &event);
 
  private:
   void updateDriverInputs();
