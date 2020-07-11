@@ -31,7 +31,7 @@ constexpr uint8_t MOB_COMMAND_TX = 1;
 constexpr uint8_t MOB_DRIVER_INPUTS_TX = 2;
 constexpr uint8_t MOB_FUEL_DATA_TX = 3;
 
-constexpr uint16_t DRIVER_DATA_UPDATE_DELAY_MS = 20;
+constexpr uint16_t DRIVER_DATA_UPDATE_DELAY_MS = 50;
 constexpr uint16_t FUEL_UPDATE_DELAY_MS = 1000;
 
 // Defined in the PDM config...
