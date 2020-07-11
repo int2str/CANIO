@@ -14,6 +14,7 @@
 // it online at <http://www.gnu.org/licenses/>.
 
 #include "event/handler.h"
+
 #include "event/loop.h"
 
 namespace canio {
@@ -23,5 +24,5 @@ Handler::Handler() { Loop::get().addHandler(this); }
 
 Handler::~Handler() {}
 
-}
-}
+}  // namespace event
+}  // namespace canio

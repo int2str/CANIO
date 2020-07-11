@@ -13,9 +13,10 @@
 // See LICENSE for a copy of the GNU General Public License or see
 // it online at <http://www.gnu.org/licenses/>.
 
+#include "system/timer.h"
+
 #include <avr/interrupt.h>
 
-#include "system/timer.h"
 #include "utils/atomic.h"
 
 namespace {
@@ -49,7 +50,7 @@ ISR(TIMER0_OVF_vect) {
   timer0_fract = f;
   timer0_millis = m;
 }
-}
+}  // namespace
 
 namespace canio {
 namespace system {
@@ -77,5 +78,5 @@ uint32_t Timer::millis_impl() const {
   return timer0_millis;
 }
 
-}
-}
+}  // namespace system
+}  // namespace canio

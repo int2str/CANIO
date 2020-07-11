@@ -14,6 +14,7 @@
 // it online at <http://www.gnu.org/licenses/>.
 
 #include "event/loop.h"
+
 #include "system/timer.h"
 
 namespace canio {
@@ -75,5 +76,5 @@ void Loop::dispatch_impl() {
   }
 }
 
-}
-}
+}  // namespace event
+}  // namespace canio

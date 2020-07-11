@@ -15,8 +15,8 @@
 
 #include "fuellevel.h"
 
-#include "events.h"
 #include "event/loop.h"
+#include "events.h"
 
 namespace {
 
@@ -51,9 +51,7 @@ constexpr uint16_t tankSensorToMl(uint16_t tank_sensor_adc) {
 namespace canio {
 namespace app {
 
-FuelLevel::FuelLevel() {
-  reset();
-}
+FuelLevel::FuelLevel() { reset(); }
 
 uint16_t FuelLevel::recalculate(uint16_t tank_sensors, uint16_t ml_used) {
   if (!initialSamplesCollected()) {

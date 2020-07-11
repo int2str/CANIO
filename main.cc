@@ -17,9 +17,8 @@
 
 #include "app/commandhandler.h"
 #include "event/loop.h"
-#include "system/watchdog.h"
-
 #include "events.h"
+#include "system/watchdog.h"
 
 namespace canio {
 

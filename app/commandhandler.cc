@@ -17,12 +17,11 @@
 
 #include <util/delay.h>
 
+#include "can.h"
 #include "device/canbus.h"
+#include "events.h"
 #include "system/watchdog.h"
 #include "utils/byteorder.h"
-
-#include "can.h"
-#include "events.h"
 
 namespace {
 
@@ -94,8 +93,7 @@ void CommandHandler::updateDriverInputs() {
 void CommandHandler::updateFuel() {
   uint16_t tank_sensor = adc_.get(4);
   uint16_t fuel_used_ml = fuel_sensor_.getMl(6);
-  uint16_t fuel_level_ml =
-      fuel_level_.recalculate(tank_sensor, fuel_used_ml);
+  uint16_t fuel_level_ml = fuel_level_.recalculate(tank_sensor, fuel_used_ml);
   fuel_used_total_ml_ += fuel_used_ml;
 
   device::CANmsg canmsg2 = {8, {0}};
@@ -113,30 +111,30 @@ void CommandHandler::onCANReceived(uint8_t mob) {
   uint8_t fuel_reset_button_pressed = msg.u8[4];
   if (fuel_reset_button_pressed && fuel_level_.initialSamplesCollected())
     fuel_level_.reset();
-  }
+}
 
 void CommandHandler::onUpdateValues() {
   updateDriverInputs();
   updateFuel();
 }
 
-void CommandHandler::onEvent(const event::Event &event) {
+void CommandHandler::onEvent(const event::Event& event) {
   switch (event.id) {
     case EVENT_UPDATE:
-      if (device::CANbus::get().hasMessage(MOB_COMMAND_RX)) {
+      if (device::CANbus::get().hasMessage(MOB_COMMAND_RX))
         onCANReceived(MOB_COMMAND_RX);
-      }
-      led_.update();
       break;
 
     case EVENT_UPDATE_DRIVER_INPUTS:
       updateDriverInputs();
-      event::Loop::postDelayed(event::Event(EVENT_UPDATE_DRIVER_INPUTS), DRIVER_DATA_UPDATE_DELAY_MS);
+      event::Loop::postDelayed(event::Event(EVENT_UPDATE_DRIVER_INPUTS),
+                               DRIVER_DATA_UPDATE_DELAY_MS);
       break;
 
     case EVENT_UPDATE_FUEL_DATA:
       updateFuel();
-      event::Loop::postDelayed(event::Event(EVENT_UPDATE_FUEL_DATA), FUEL_UPDATE_DELAY_MS);
+      event::Loop::postDelayed(event::Event(EVENT_UPDATE_FUEL_DATA),
+                               FUEL_UPDATE_DELAY_MS);
       break;
 
     case EVENT_TANK_SAMPLING_STARTED:
