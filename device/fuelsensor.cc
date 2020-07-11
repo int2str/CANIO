@@ -108,7 +108,7 @@ uint16_t FuelSensor::getMl(uint8_t offset) {
   uint16_t ml = pulses / PULSES_PER_ML;
   pulses_[offset] -= (ml * PULSES_PER_ML);
 
-  return pulses;
+  return ml;
 }
 
 void FuelSensor::updateIrq0() {
