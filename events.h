@@ -20,7 +20,10 @@
 // !!! Must also fit inside uint8_t !!!
 
 enum CANIO_EVENTS : uint8_t {
-    EVENT_UPDATE = 1,
+    EVENT_UPDATE = 0x01,
+
+    EVENT_UPDATE_DRIVER_INPUTS = 0x10,
+    EVENT_UPDATE_FUEL_DATA = 0x11,
 };
 
 #endif

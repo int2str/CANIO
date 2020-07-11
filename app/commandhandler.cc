@@ -31,12 +31,8 @@ constexpr uint8_t MOB_COMMAND_TX = 1;
 constexpr uint8_t MOB_DRIVER_INPUTS_TX = 2;
 constexpr uint8_t MOB_FUEL_DATA_TX = 3;
 
-// A value of 6'000 here roughly equates to 50ms between updates or a 20Hz
-// update rate. Note that this is not absolute as timers are disabled and this
-// depends on the frequency at which the main update loop calls this update()
-// function. If more stability/accuracy is required here, switch to actual
-// timers...
-constexpr uint16_t UPDATED_EVERY_N_LOOPS = 6'000;
+constexpr uint16_t DRIVER_DATA_UPDATE_DELAY_MS = 20;
+constexpr uint16_t FUEL_UPDATE_DELAY_MS = 1000;
 
 // Defined in the PDM config...
 constexpr uint16_t CAN_KEYPAD_EVENT_ID = 0x520;
@@ -81,6 +77,12 @@ CommandHandler::CommandHandler() : fuel_used_total_ml_{0} {
 
   fuel_sensor_.enable(0x40);
   adc_.enable(0x3E);
+
+  event::Loop::postDelayed(event::Event(EVENT_UPDATE_DRIVER_INPUTS), DRIVER_DATA_UPDATE_DELAY_MS);
+  event::Loop::postDelayed(event::Event(EVENT_UPDATE_FUEL_DATA), FUEL_UPDATE_DELAY_MS);
+
+  // LED on while we initially sample the tank fuel sensor
+  led_.on();
 }
 
 void CommandHandler::updateDriverInputs() {
@@ -104,6 +106,9 @@ void CommandHandler::updateFuel() {
   canmsg2.u16[1] = utils::lsb_to_msb(fuel_level_ml);
   canmsg2.u32[1] = utils::lsb_to_msb(fuel_used_total_ml_);
   device::CANbus::get().send(MOB_FUEL_DATA_TX, CAN_BASE_ID + 2, canmsg2);
+
+  if (fuel_level_.initialSamplesCollected())
+    led_.off();
 }
 
 void CommandHandler::onCANReceived(uint8_t mob) {
@@ -123,17 +128,20 @@ void CommandHandler::onUpdateValues() {
 }
 
 void CommandHandler::onEvent(const event::Event &event) {
-  if (event.id != EVENT_UPDATE) return;
-  led_.update();
+  switch (event.id) {
+    case EVENT_UPDATE:
+      led_.update();
+      break;
 
-  if (device::CANbus::get().hasMessage(MOB_COMMAND_RX)) {
-    onCANReceived(MOB_COMMAND_RX);
-  }
+    case EVENT_UPDATE_DRIVER_INPUTS:
+      updateDriverInputs();
+      event::Loop::postDelayed(event::Event(EVENT_UPDATE_DRIVER_INPUTS), DRIVER_DATA_UPDATE_DELAY_MS);
+      break;
 
-  static uint16_t update_delay = 0;
-  if (update_delay++ == UPDATED_EVERY_N_LOOPS) {
-    update_delay = 0;
-    onUpdateValues();
+    case EVENT_UPDATE_FUEL_DATA:
+      updateFuel();
+      event::Loop::postDelayed(event::Event(EVENT_UPDATE_FUEL_DATA), FUEL_UPDATE_DELAY_MS);
+      break;
   }
 }
 

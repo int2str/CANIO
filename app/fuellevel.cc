@@ -19,7 +19,7 @@ namespace {
 
 // Tune this constant here to get an initial warm-up period, and make sure
 // there's room in the tank_sensor_average_ as needed:
-constexpr uint16_t INITIAL_SAMPLES_TO_COLLECT = 60;
+constexpr uint16_t INITIAL_SAMPLES_TO_COLLECT = 3;
 
 constexpr uint16_t map_range(uint16_t value, uint16_t in_min, uint16_t in_max,
                              uint16_t out_min, uint16_t out_max) {
@@ -51,11 +51,6 @@ namespace app {
 FuelLevel::FuelLevel() : samples_collected_{0} {}
 
 uint16_t FuelLevel::recalculate(uint16_t tank_sensors, uint16_t ml_used) {
-  // Assumption time....
-  // This function is called about every 50ms. This is fully outside of the
-  // control of this function/class. This matters for how long the initial
-  // sample period is.
-
   if (!initialSamplesCollected()) {
     // Initial sample period is used to accumulate values for or initial
     // baseline. Consumption is ignored at this point.
