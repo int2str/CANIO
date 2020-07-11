@@ -39,7 +39,6 @@ class CommandHandler : public event::Handler {
   void updateFuel();
 
   void onCANReceived(uint8_t mob);
-  void onUpdateValues();
 
   device::Adc adc_;
   device::FuelSensor fuel_sensor_;

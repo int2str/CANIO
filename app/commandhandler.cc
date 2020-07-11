@@ -113,11 +113,6 @@ void CommandHandler::onCANReceived(uint8_t mob) {
     fuel_level_.reset();
 }
 
-void CommandHandler::onUpdateValues() {
-  updateDriverInputs();
-  updateFuel();
-}
-
 void CommandHandler::onEvent(const event::Event& event) {
   switch (event.id) {
     case EVENT_UPDATE:
