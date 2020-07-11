@@ -20,7 +20,7 @@
 namespace canio {
 namespace device {
 
-Led::Led() : ticks_(0) {
+Led::Led() {
   DDRB |= (1 << PB1);
   off();
 }
@@ -28,21 +28,6 @@ Led::Led() : ticks_(0) {
 void Led::on() { PORTB |= (1 << PB1); }
 
 void Led::off() { PORTB &= ~(1 << PB1); }
-
-void Led::timedOn(uint16_t ticks) {
-  if (ticks > 0) {
-    ticks_ = ticks;
-    on();
-  } else {
-    off();
-  }
-}
-
-void Led::update() {
-  if (ticks_ > 0) {
-    if (--ticks_ == 0) off();
-  }
-}
 
 }  // namespace device
 }  // namespace canio

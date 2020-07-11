@@ -31,13 +31,7 @@ class Led {
   void on();
   void off();
 
-  void timedOn(uint16_t ticks);
-  
-  void update();
-
  private:
-  uint16_t ticks_;
-
   DISALLOW_COPY_AND_ASSIGN(Led);
 };
 
