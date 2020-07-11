@@ -38,6 +38,7 @@ constexpr uint16_t tankSensorToMl(uint16_t tank_sensor_adc) {
   constexpr uint16_t FULL_TANK_ADC = 410;
   constexpr uint16_t FULL_TANK_ML = 63000;
 
+  if (tank_sensor_adc <= EMPTY_TANK_ADC) return 0;
   return map_range(tank_sensor_adc, EMPTY_TANK_ADC, FULL_TANK_ADC, 0,
                    FULL_TANK_ML);
 }
