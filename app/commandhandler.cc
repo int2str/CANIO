@@ -24,14 +24,17 @@
 
 namespace {
 
-constexpr uint8_t MOB_COMMAND_RX = 1;
+constexpr uint8_t MOB_COMMAND_RX = 0;
+constexpr uint8_t MOB_COMMAND_TX = 1;
+constexpr uint8_t MOB_DRIVER_INPUTS_TX = 2;
+constexpr uint8_t MOB_FUEL_DATA_TX = 3;
 
-// A value of 3000 here roughly equates to 25ms between updates or a 40Hz
+// A value of 6'000 here roughly equates to 50ms between updates or a 20Hz
 // update rate. Note that this is not absolute as timers are disabled and this
 // depends on the frequency at which the main update loop calls this update()
 // function. If more stability/accuracy is required here, switch to actual
 // timers...
-constexpr uint16_t UPDATED_EVERY_N_LOOPS = 3'000;
+constexpr uint16_t UPDATED_EVERY_N_LOOPS = 6'000;
 
 // Defined in the PDM config...
 constexpr uint16_t CAN_KEYPAD_EVENT_ID = 0x520;
@@ -71,7 +74,7 @@ CommandHandler::CommandHandler() : fuel_used_total_ml_{0} {
   canbus.setBaudrate(CAN_BAUD_RATE);
   canbus.registerReceiver(MOB_COMMAND_RX, CAN_KEYPAD_EVENT_ID);
 
-  canbus.send(CAN_BASE_ID,
+  canbus.send(MOB_COMMAND_TX, CAN_BASE_ID,
               makeEvent16(CAN_EVT_BOOT_COMPLETE, CAN_PROTOCOL_VERSION));
 
   fuel_sensor_.enable(0x40);
@@ -84,7 +87,7 @@ void CommandHandler::updateDriverInputs() {
   canmsg1.u16[1] = utils::lsb_to_msb(adc_.get(2));
   canmsg1.u16[2] = utils::lsb_to_msb(adc_.get(3));
   canmsg1.u16[3] = utils::lsb_to_msb(adc_.get(5));
-  device::CANbus::get().send(CAN_BASE_ID + 1, canmsg1);
+  device::CANbus::get().send(MOB_DRIVER_INPUTS_TX, CAN_BASE_ID + 1, canmsg1);
 }
 
 void CommandHandler::updateFuel() {
@@ -98,15 +101,7 @@ void CommandHandler::updateFuel() {
   canmsg2.u16[0] = utils::lsb_to_msb(tank_sensor);
   canmsg2.u16[1] = utils::lsb_to_msb(fuel_level_ml);
   canmsg2.u32[1] = utils::lsb_to_msb(fuel_used_total_ml_);
-  device::CANbus::get().send(CAN_BASE_ID + 2, canmsg2);
-
-  // Turn on LED while initial samples are collected
-  if (!fuel_level_.initialSamplesCollected()) {
-    // The math here ensures it's still on until we check again....
-    // Also we're using timed on here so we don't have to continuously
-    // issue an "off" command after initial sampling.
-    led_.timedOn(UPDATED_EVERY_N_LOOPS * 2 + 1);
-  }
+  device::CANbus::get().send(MOB_FUEL_DATA_TX, CAN_BASE_ID + 2, canmsg2);
 }
 
 void CommandHandler::onCANReceived(uint8_t mob) {
@@ -121,17 +116,8 @@ void CommandHandler::onCANReceived(uint8_t mob) {
 }
 
 void CommandHandler::onUpdateValues() {
-  // Alternate between sending brake pressures and fuel data.
-  // Sending is asynchronous and we're not waiting for the
-  // transmission to complete, so can't send both back to back.
-  static bool one = true;
-  if (one) {
-    updateDriverInputs();
-  } else {
-    updateFuel();
-  }
-
-  one = !one;
+  updateDriverInputs();
+  updateFuel();
 }
 
 void CommandHandler::update() {

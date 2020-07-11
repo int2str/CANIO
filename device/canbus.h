@@ -38,7 +38,7 @@ class CANbus {
 
   void setBaudrate(uint16_t baud);
 
-  void send(uint16_t id, CANmsg message);
+  void send(uint8_t mob, uint16_t id, CANmsg message);
   void registerReceiver(uint8_t mob, uint16_t id);
 
   bool hasMessage(uint8_t mob);

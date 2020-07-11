@@ -130,8 +130,8 @@ CANbus::CANbus() {
 
 void CANbus::setBaudrate(uint16_t baud) { setBaudrateRegisters(baud); }
 
-void CANbus::send(uint16_t id, CANmsg message) {
-  selectPage(0);
+void CANbus::send(uint8_t mob, uint16_t id, CANmsg message) {
+  selectPage(mob);
   resetMOb();
   setID(id);
   setData(message.length, message.u8);
