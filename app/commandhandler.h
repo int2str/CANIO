@@ -42,6 +42,7 @@ class CommandHandler {
   device::FuelSensor fuel_sensor_;
   device::Led led_;
   FuelLevel fuel_level_;
+  uint32_t fuel_used_total_ml_;
 };
 
 }  // namespace app

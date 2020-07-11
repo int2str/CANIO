@@ -18,7 +18,7 @@
 
 #include <stdint.h>
 
-constexpr uint16_t CAN_PROTOCOL_VERSION = 0x0103;
+constexpr uint16_t CAN_PROTOCOL_VERSION = 0x0104;
 
 constexpr uint16_t CAN_BASE_ID = 0x4AE;
 constexpr uint16_t CAN_BAUD_RATE = 500;

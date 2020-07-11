@@ -24,8 +24,9 @@ namespace device {
 struct CANmsg {
   uint16_t length;
   union {
-    uint8_t data[8];
+    uint8_t u8[8];
     uint16_t u16[4];
+    uint32_t u32[2];
   };
 } __attribute__((packed));
 

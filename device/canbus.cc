@@ -134,7 +134,7 @@ void CANbus::send(uint16_t id, CANmsg message) {
   selectPage(0);
   resetMOb();
   setID(id);
-  setData(message.length, message.data);
+  setData(message.length, message.u8);
   enableMobIrq(0);  // Enable MOb 0 interrupt for TX
   setTxEnabled();
 }
@@ -155,7 +155,7 @@ CANmsg CANbus::getMessage(uint8_t mob) {
   canio::device::CANmsg msg;
   msg.length = (CANCDMOB & 0xF);
   for (uint8_t i = 0; i != msg.length; ++i) {
-    msg.data[i] = CANMSG;
+    msg.u8[i] = CANMSG;
   }
 
   resetMOb();

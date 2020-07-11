@@ -38,9 +38,9 @@ constexpr uint16_t CAN_KEYPAD_EVENT_ID = 0x520;
 
 canio::device::CANmsg makeEvent16(uint8_t evt, uint16_t data) {
   canio::device::CANmsg canmsg = {3, {0}};
-  canmsg.data[0] = evt;
-  canmsg.data[1] = (data >> 8) & 0xFF;
-  canmsg.data[2] = data & 0xFF;
+  canmsg.u8[0] = evt;
+  canmsg.u8[1] = (data >> 8) & 0xFF;
+  canmsg.u8[2] = data & 0xFF;
   return canmsg;
 }
 
@@ -64,7 +64,7 @@ CommandHandler& CommandHandler::init() {
   return commandhandler;
 }
 
-CommandHandler::CommandHandler() {
+CommandHandler::CommandHandler() : fuel_used_total_ml_{0} {
   welcomeBlink(led_);
 
   device::CANbus& canbus = device::CANbus::get();
@@ -89,12 +89,15 @@ void CommandHandler::updateDriverInputs() {
 
 void CommandHandler::updateFuel() {
   uint16_t tank_sensor = adc_.get(4);
-  uint16_t fuel_level =
-      fuel_level_.recalculate(tank_sensor, fuel_sensor_.getMl(6));
+  uint16_t fuel_used_ml = fuel_sensor_.getMl(6);
+  uint16_t fuel_level_ml =
+      fuel_level_.recalculate(tank_sensor, fuel_used_ml);
+  fuel_used_total_ml_ += fuel_used_ml;
 
-  device::CANmsg canmsg2 = {4, {0}};
+  device::CANmsg canmsg2 = {8, {0}};
   canmsg2.u16[0] = utils::lsb_to_msb(tank_sensor);
-  canmsg2.u16[1] = utils::lsb_to_msb(fuel_level);
+  canmsg2.u16[1] = utils::lsb_to_msb(fuel_level_ml);
+  canmsg2.u32[1] = utils::lsb_to_msb(fuel_used_total_ml_);
   device::CANbus::get().send(CAN_BASE_ID + 2, canmsg2);
 
   // Turn on LED while initial samples are collected
@@ -111,7 +114,7 @@ void CommandHandler::onCANReceived(uint8_t mob) {
   device::CANmsg msg = canbus.getMessage(mob);
 
   if (msg.length < 5) return;
-  uint8_t fuel_reset_button_pressed = msg.data[4];
+  uint8_t fuel_reset_button_pressed = msg.u8[4];
   if (fuel_reset_button_pressed && fuel_level_.initialSamplesCollected()) {
     fuel_level_.reset();
   }
