@@ -15,11 +15,14 @@
 
 #include "fuellevel.h"
 
+#include "events.h"
+#include "event/loop.h"
+
 namespace {
 
 // Tune this constant here to get an initial warm-up period, and make sure
 // there's room in the tank_sensor_average_ as needed:
-constexpr uint16_t INITIAL_SAMPLES_TO_COLLECT = 3;
+constexpr uint16_t INITIAL_SAMPLES_TO_COLLECT = 4;
 
 constexpr uint16_t map_range(uint16_t value, uint16_t in_min, uint16_t in_max,
                              uint16_t out_min, uint16_t out_max) {
@@ -48,16 +51,25 @@ constexpr uint16_t tankSensorToMl(uint16_t tank_sensor_adc) {
 namespace canio {
 namespace app {
 
-FuelLevel::FuelLevel() : samples_collected_{0} {}
+FuelLevel::FuelLevel() {
+  reset();
+}
 
 uint16_t FuelLevel::recalculate(uint16_t tank_sensors, uint16_t ml_used) {
   if (!initialSamplesCollected()) {
     // Initial sample period is used to accumulate values for or initial
     // baseline. Consumption is ignored at this point.
 
+    if (samples_collected_ == 0)
+      event::Loop::post(event::Event(EVENT_TANK_SAMPLING_STARTED));
+
     ++samples_collected_;
     tank_sensor_average_.push(tank_sensors);
     fuel_level_reference_ml_ = tankSensorToMl(tank_sensor_average_.get());
+
+    // Check again to see if we're now done
+    if (initialSamplesCollected())
+      event::Loop::post(event::Event(EVENT_TANK_SAMPLING_COMPLETED));
 
   } else {
     // Now we start subtracting fuel consumption ...

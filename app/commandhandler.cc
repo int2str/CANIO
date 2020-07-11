@@ -78,11 +78,8 @@ CommandHandler::CommandHandler() : fuel_used_total_ml_{0} {
   fuel_sensor_.enable(0x40);
   adc_.enable(0x3E);
 
-  event::Loop::postDelayed(event::Event(EVENT_UPDATE_DRIVER_INPUTS), DRIVER_DATA_UPDATE_DELAY_MS);
-  event::Loop::postDelayed(event::Event(EVENT_UPDATE_FUEL_DATA), FUEL_UPDATE_DELAY_MS);
-
-  // LED on while we initially sample the tank fuel sensor
-  led_.on();
+  event::Loop::postDelayed(event::Event(EVENT_UPDATE_DRIVER_INPUTS), 10);
+  event::Loop::postDelayed(event::Event(EVENT_UPDATE_FUEL_DATA), 10 + 1);
 }
 
 void CommandHandler::updateDriverInputs() {
@@ -106,9 +103,6 @@ void CommandHandler::updateFuel() {
   canmsg2.u16[1] = utils::lsb_to_msb(fuel_level_ml);
   canmsg2.u32[1] = utils::lsb_to_msb(fuel_used_total_ml_);
   device::CANbus::get().send(MOB_FUEL_DATA_TX, CAN_BASE_ID + 2, canmsg2);
-
-  if (fuel_level_.initialSamplesCollected())
-    led_.off();
 }
 
 void CommandHandler::onCANReceived(uint8_t mob) {
@@ -117,10 +111,9 @@ void CommandHandler::onCANReceived(uint8_t mob) {
 
   if (msg.length < 5) return;
   uint8_t fuel_reset_button_pressed = msg.u8[4];
-  if (fuel_reset_button_pressed && fuel_level_.initialSamplesCollected()) {
+  if (fuel_reset_button_pressed && fuel_level_.initialSamplesCollected())
     fuel_level_.reset();
   }
-}
 
 void CommandHandler::onUpdateValues() {
   updateDriverInputs();
@@ -130,6 +123,9 @@ void CommandHandler::onUpdateValues() {
 void CommandHandler::onEvent(const event::Event &event) {
   switch (event.id) {
     case EVENT_UPDATE:
+      if (device::CANbus::get().hasMessage(MOB_COMMAND_RX)) {
+        onCANReceived(MOB_COMMAND_RX);
+      }
       led_.update();
       break;
 
@@ -141,6 +137,14 @@ void CommandHandler::onEvent(const event::Event &event) {
     case EVENT_UPDATE_FUEL_DATA:
       updateFuel();
       event::Loop::postDelayed(event::Event(EVENT_UPDATE_FUEL_DATA), FUEL_UPDATE_DELAY_MS);
+      break;
+
+    case EVENT_TANK_SAMPLING_STARTED:
+      led_.on();
+      break;
+
+    case EVENT_TANK_SAMPLING_COMPLETED:
+      led_.off();
       break;
   }
 }
