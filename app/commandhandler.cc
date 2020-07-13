@@ -77,8 +77,8 @@ CommandHandler::CommandHandler() : fuel_used_total_ml_{0} {
   fuel_sensor_.enable(0x40);
   adc_.enable(0x3E);
 
-  event::Loop::postDelayed(event::Event(EVENT_UPDATE_DRIVER_INPUTS), 10);
-  event::Loop::postDelayed(event::Event(EVENT_UPDATE_FUEL_DATA), 10 + 1);
+  event::Loop::postDelayed({EVENT_UPDATE_DRIVER_INPUTS}, 10);
+  event::Loop::postDelayed({EVENT_UPDATE_FUEL_DATA}, 10 + 1);
 }
 
 void CommandHandler::updateDriverInputs() {
@@ -122,14 +122,13 @@ void CommandHandler::onEvent(const event::Event& event) {
 
     case EVENT_UPDATE_DRIVER_INPUTS:
       updateDriverInputs();
-      event::Loop::postDelayed(event::Event(EVENT_UPDATE_DRIVER_INPUTS),
+      event::Loop::postDelayed({EVENT_UPDATE_DRIVER_INPUTS},
                                DRIVER_DATA_UPDATE_DELAY_MS);
       break;
 
     case EVENT_UPDATE_FUEL_DATA:
       updateFuel();
-      event::Loop::postDelayed(event::Event(EVENT_UPDATE_FUEL_DATA),
-                               FUEL_UPDATE_DELAY_MS);
+      event::Loop::postDelayed({EVENT_UPDATE_FUEL_DATA}, FUEL_UPDATE_DELAY_MS);
       break;
 
     case EVENT_TANK_SAMPLING_STARTED:

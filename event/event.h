@@ -23,7 +23,8 @@ namespace event {
 
 class Event {
  public:
-  explicit Event(const uint8_t id, const uint8_t param = 0);
+  Event(const uint8_t id, const uint8_t param = 0);
+  Event() = delete;
 
   bool operator==(const Event &rhs) const;
 
@@ -33,5 +34,5 @@ class Event {
   uint32_t posted;
 };
 
-}
-}
+}  // namespace event
+}  // namespace canio

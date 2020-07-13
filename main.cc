@@ -43,7 +43,7 @@ void run() {
   app::CommandHandler::init();
 
   while (true) {
-    event::Loop::post(event::Event(EVENT_UPDATE));
+    event::Loop::post({EVENT_UPDATE});
     event::Loop::dispatch();
     system::Watchdog::reset();
   }
