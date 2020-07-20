@@ -58,8 +58,7 @@ uint16_t FuelLevel::recalculate(uint16_t tank_sensors, uint16_t ml_used) {
     // Initial sample period is used to accumulate values for or initial
     // baseline. Consumption is ignored at this point.
 
-    if (samples_collected_ == 0)
-      event::Loop::post(EVENT_TANK_SAMPLING_STARTED);
+    if (samples_collected_ == 0) event::Loop::post(EVENT_TANK_SAMPLING_STARTED);
 
     ++samples_collected_;
     tank_sensor_average_.push(tank_sensors);

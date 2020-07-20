@@ -24,17 +24,17 @@ namespace canio {
 namespace app {
 
 class FuelLevel {
-  public:
-    FuelLevel();
+ public:
+  FuelLevel();
 
-    uint16_t recalculate(uint16_t tank_sensors, uint16_t ml_used);
-    bool initialSamplesCollected() const;
-    void reset();
+  uint16_t recalculate(uint16_t tank_sensors, uint16_t ml_used);
+  bool initialSamplesCollected() const;
+  void reset();
 
-  private:
-    utils::MovingAverage<uint32_t, 3> tank_sensor_average_;
-    uint16_t samples_collected_;
-    uint16_t fuel_level_reference_ml_;
+ private:
+  utils::MovingAverage<uint32_t, 3> tank_sensor_average_;
+  uint16_t samples_collected_;
+  uint16_t fuel_level_reference_ml_;
 };
 
 }  // namespace app

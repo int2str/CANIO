@@ -16,9 +16,8 @@
 #ifndef HANDLER_H
 #define HANDLER_H
 
-#include "utils/cpp.h"
-
 #include "stdint.h"
+#include "utils/cpp.h"
 
 namespace canio {
 namespace event {
@@ -35,7 +34,7 @@ class Handler {
   DISALLOW_COPY_AND_ASSIGN(Handler);
 };
 
-}
-}
+}  // namespace event
+}  // namespace canio
 
 #endif  // HANDLER_H

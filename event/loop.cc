@@ -20,17 +20,13 @@
 namespace canio {
 namespace event {
 
-void Loop::post(uint8_t id) {
-  get().events_[id]  = {true, 0, 0};
-}
+void Loop::post(uint8_t id) { get().events_[id] = {true, 0, 0}; }
 
 void Loop::postDelayed(uint8_t id, const uint32_t ms) {
   get().events_[id] = {true, ms, system::Timer::millis()};
 }
 
-void Loop::remove(uint8_t id) {
-  get().events_[id] = {false, 0, 0};
-}
+void Loop::remove(uint8_t id) { get().events_[id] = {false, 0, 0}; }
 
 void Loop::addHandler(Handler *ph) { get().handlers.push(ph); }
 

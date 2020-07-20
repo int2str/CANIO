@@ -16,11 +16,11 @@
 #ifndef COMMANDHANDLER_H
 #define COMMANDHANDLER_H
 
-#include "fuellevel.h"
 #include "device/adc.h"
 #include "device/fuelsensor.h"
 #include "device/led.h"
 #include "event/loop.h"
+#include "fuellevel.h"
 
 namespace canio {
 namespace app {

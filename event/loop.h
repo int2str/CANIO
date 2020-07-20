@@ -17,10 +17,9 @@
 #define LOOP_H
 
 #include "event/handler.h"
+#include "events.h"
 #include "utils/cpp.h"
 #include "utils/queue.h"
-
-#include "events.h"
 
 namespace canio {
 namespace event {
@@ -71,7 +70,7 @@ class Loop {
   DISALLOW_COPY_AND_ASSIGN(Loop);
 };
 
-}
-}
+}  // namespace event
+}  // namespace canio
 
 #endif  // LOOP_H
