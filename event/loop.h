@@ -28,7 +28,7 @@ namespace event {
 // |dispatch| must be called regularly in order to distribute events.
 // This is a singleton; there shall be only one.
 class Loop {
-  struct Evt {
+  struct Event {
     bool active;
     uint32_t delay;
     uint32_t posted;
@@ -64,7 +64,7 @@ class Loop {
   static Loop &get();
   void dispatch_impl();
 
-  Evt events_[EVENT_LAST];
+  Event events_[EVENT_LAST];
   utils::Queue<Handler *> handlers;
 
   DISALLOW_COPY_AND_ASSIGN(Loop);
