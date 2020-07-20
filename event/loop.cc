@@ -20,24 +20,16 @@
 namespace canio {
 namespace event {
 
-void Loop::post(const Event &event) { get().events.push(event); }
-
-void Loop::postDelayed(const Event &event, const uint32_t ms) {
-  Event e = event;
-  e.delay = ms;
-  e.posted = system::Timer::millis();
-
-  get().events.push(e);
+void Loop::post(uint8_t id) {
+  get().events_[id]  = {true, 0, 0};
 }
 
-void Loop::remove(const Event &event) {
-  auto &events = get().events;
-  for (auto it = events.begin(); it != events.end();) {
-    if (event == *it)
-      events.erase(it++);
-    else
-      ++it;
-  }
+void Loop::postDelayed(uint8_t id, const uint32_t ms) {
+  get().events_[id] = {true, ms, system::Timer::millis()};
+}
+
+void Loop::remove(uint8_t id) {
+  get().events_[id] = {false, 0, 0};
 }
 
 void Loop::addHandler(Handler *ph) { get().handlers.push(ph); }
@@ -62,16 +54,14 @@ Loop &Loop::get() {
 Loop::Loop() {}
 
 void Loop::dispatch_impl() {
-  for (auto it = events.begin(); it != events.end();) {
-    const Event &event = *it;
+  for (uint8_t i = 0; i != EVENT_LAST; ++i) {
+    if (!events_[i].active) continue;
 
     // Process and erase events
-    if (event.delay == 0 ||
-        ((system::Timer::millis() - event.posted) >= event.delay)) {
-      for (auto handler : handlers) handler->onEvent(event);
-      events.erase(it++);
-    } else {
-      ++it;
+    if (events_[i].delay == 0 ||
+        ((system::Timer::millis() - events_[i].posted) >= events_[i].delay)) {
+      events_[i] = {false, 0, 0};
+      for (auto handler : handlers) handler->onEvent(i);
     }
   }
 }

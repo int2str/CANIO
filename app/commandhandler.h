@@ -32,7 +32,7 @@ class CommandHandler : public event::Handler {
   static CommandHandler& init();
 
  protected:
-  void onEvent(const event::Event &event);
+  void onEvent(uint8_t id);
 
  private:
   void updateDriverInputs();

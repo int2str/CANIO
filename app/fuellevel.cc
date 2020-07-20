@@ -59,7 +59,7 @@ uint16_t FuelLevel::recalculate(uint16_t tank_sensors, uint16_t ml_used) {
     // baseline. Consumption is ignored at this point.
 
     if (samples_collected_ == 0)
-      event::Loop::post(event::Event(EVENT_TANK_SAMPLING_STARTED));
+      event::Loop::post(EVENT_TANK_SAMPLING_STARTED);
 
     ++samples_collected_;
     tank_sensor_average_.push(tank_sensors);
@@ -67,7 +67,7 @@ uint16_t FuelLevel::recalculate(uint16_t tank_sensors, uint16_t ml_used) {
 
     // Check again to see if we're now done
     if (initialSamplesCollected())
-      event::Loop::post(event::Event(EVENT_TANK_SAMPLING_COMPLETED));
+      event::Loop::post(EVENT_TANK_SAMPLING_COMPLETED);
 
   } else {
     // Now we start subtracting fuel consumption ...

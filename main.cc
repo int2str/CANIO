@@ -42,10 +42,13 @@ void run() {
   system::Watchdog::enable();
   app::CommandHandler::init();
 
+DDRB |= (1 << PB7);
+
   while (true) {
     event::Loop::post({EVENT_UPDATE});
     event::Loop::dispatch();
     system::Watchdog::reset();
+PINB = (1 << PB7);
   }
 }
 

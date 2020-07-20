@@ -16,10 +16,11 @@
 #ifndef LOOP_H
 #define LOOP_H
 
-#include "event/event.h"
 #include "event/handler.h"
 #include "utils/cpp.h"
 #include "utils/queue.h"
+
+#include "events.h"
 
 namespace canio {
 namespace event {
@@ -28,20 +29,26 @@ namespace event {
 // |dispatch| must be called regularly in order to distribute events.
 // This is a singleton; there shall be only one.
 class Loop {
+  struct Evt {
+    bool active;
+    uint32_t delay;
+    uint32_t posted;
+  };
+
   Loop();
 
  public:
   // Posts to all registered handlers on the next call to |dispatch|
-  static void post(const Event &event);
+  static void post(uint8_t id);
 
   // Posts to all registered handlers when |dispatch| is called after
   // |ms| have elapsed
-  static void postDelayed(const Event &event, const uint32_t ms);
+  static void postDelayed(uint8_t id, const uint32_t ms);
 
   // Remove an |event| from the event loop
   // Should be most helpful to remove delayed event before they are
   // fired.
-  static void remove(const Event &event);
+  static void remove(uint8_t id);
 
   // Must be called regularly to dispatch events
   static void dispatch();
@@ -58,7 +65,7 @@ class Loop {
   static Loop &get();
   void dispatch_impl();
 
-  utils::Queue<Event> events;
+  Evt events_[EVENT_LAST];
   utils::Queue<Handler *> handlers;
 
   DISALLOW_COPY_AND_ASSIGN(Loop);

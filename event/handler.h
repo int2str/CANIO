@@ -16,8 +16,9 @@
 #ifndef HANDLER_H
 #define HANDLER_H
 
-#include "event/event.h"
 #include "utils/cpp.h"
+
+#include "stdint.h"
 
 namespace canio {
 namespace event {
@@ -29,7 +30,7 @@ class Handler {
   Handler();
   virtual ~Handler();
 
-  virtual void onEvent(const Event &event) = 0;
+  virtual void onEvent(uint8_t event) = 0;
 
   DISALLOW_COPY_AND_ASSIGN(Handler);
 };
