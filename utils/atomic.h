@@ -33,7 +33,7 @@ class Atomic {
   _INLINE_ ~Atomic() { sei(); }
 };
 
-}
-}
+}  // namespace utils
+}  // namespace canio
 
 #endif  // ATOMIC_H

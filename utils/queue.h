@@ -108,7 +108,7 @@ class Queue {
   Node *head;
 };
 
-}
-}
+}  // namespace utils
+}  // namespace canio
 
 #endif  // QUEUE_H

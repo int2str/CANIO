@@ -36,7 +36,7 @@ class Timer {
   uint32_t millis_impl() const;
 };
 
-}
-}
+}  // namespace system
+}  // namespace canio
 
 #endif  // TIMER_H

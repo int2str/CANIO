@@ -27,5 +27,4 @@ enum CanEvents : uint8_t {
   CAN_EVT_BOOT_COMPLETE = 0xE1,
 };
 
-
 #endif  // CAN_H
