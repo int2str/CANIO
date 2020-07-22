@@ -38,7 +38,7 @@ build $builddir/libapp.a: ar $builddir/commandhandler.o $builddir/fuellevel.o
 
 build $builddir/handler.o: cxx event/handler.cc
 build $builddir/loop.o: cxx event/loop.cc
-build $builddir/libevent.a: ar $builddir/event.o $builddir/handler.o $builddir/loop.o
+build $builddir/libevent.a: ar $builddir/handler.o $builddir/loop.o
 
 build $builddir/adc.o: cxx device/adc.cc
 build $builddir/canbus.o: cxx device/canbus.cc
