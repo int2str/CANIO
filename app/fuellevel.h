@@ -32,7 +32,7 @@ class FuelLevel {
   void reset();
 
  private:
-  utils::MovingAverage<uint32_t, 3> tank_sensor_average_;
+  utils::MovingAverage<uint16_t, 3> tank_sensor_average_;
   uint16_t samples_collected_;
   uint16_t fuel_level_reference_ml_;
 };
