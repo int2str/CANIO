@@ -44,7 +44,7 @@ class MovingAverage {
  private:
   T buffer[WINDOW];
   size_t index;
-  T sum;
+  uint32_t sum;
 };
 
 }  // namespace utils
